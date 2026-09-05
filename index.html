@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Sfida del giorno</title>
-<meta name="description" content="Ogni giorno una piccola sfida: falla, premi Fatto e costruisci la tua serie di giorni.">
+<title>Sfida · One small challenge a day</title>
+<meta name="description" content="One small challenge a day: do it, press Done, keep your streak. — Ogni giorno una piccola sfida: falla, premi Fatto e costruisci la tua serie.">
 <meta name="theme-color" content="#F0482B">
-<meta name="application-name" content="Sfida del giorno">
+<meta name="application-name" content="Sfida">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Sfida del giorno">
+<meta name="apple-mobile-web-app-title" content="Sfida">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta property="og:title" content="Sfida del giorno">
-<meta property="og:description" content="Ogni giorno una piccola sfida. Falla, metti il timbro, costruisci la tua serie.">
+<meta property="og:title" content="Sfida · One small challenge a day">
+<meta property="og:description" content="Every day one small challenge. Do it, get your stamp, build your streak.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="./icon-512.png">
 <link rel="manifest" href="./manifest.json">
@@ -56,6 +56,7 @@
     margin:0; min-height:100vh; background:var(--ground); color:var(--ink);
     font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
     font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased;
+    padding-bottom:env(safe-area-inset-bottom);
   }
   .app{max-width:440px; margin:0 auto; padding:22px 18px 44px; display:flex; flex-direction:column; gap:26px}
 
@@ -141,6 +142,11 @@
   .btn-sec:hover{border-color:var(--muted)}
   .btn-sec[disabled]{opacity:.45; cursor:not-allowed}
   .hint{margin:0; font-size:13px; color:var(--muted)}
+  .btn-fb{width:100%; min-height:48px; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:600; font-size:15px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none}
+  .btn-fb:hover{border-color:var(--muted)}
+  .btn-fb svg{width:18px; height:18px; color:var(--accent)}
+  .btn-install{width:100%; min-height:48px; background:var(--accent-soft); color:var(--accent); border:1px solid transparent; font-weight:700; font-size:15px; border-radius:14px}
+  .btn-install[hidden]{display:none}
 
   .hist{list-style:none; margin:0; padding:0}
   .hist li{display:grid; grid-template-columns:64px 1fr; gap:10px; padding:10px 0; border-top:1px solid var(--line); font-size:15px; line-height:1.4}
@@ -152,21 +158,18 @@
   .how p{margin:0 0 8px}
   .how p:last-child{margin:0}
   .how strong{color:var(--ink); font-weight:600}
+  .how a{color:var(--muted)}
+  .foot-links{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-top:10px; font-size:13px}
+  .lang{appearance:none; margin-left:auto; background:none; border:1px solid var(--line); color:var(--muted); font-family:inherit; font-size:13px; font-weight:600; padding:4px 11px; border-radius:999px; cursor:pointer}
+  .lang:hover{border-color:var(--muted); color:var(--ink)}
+  .lang:focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+  @media (display-mode: standalone){ .p-install{display:none} }
 
   .toast{
     position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(8px); background:var(--ink); color:var(--ground);
     padding:10px 16px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; max-width:90vw; text-align:center;
   }
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
-
-  .btn-fb{width:100%; min-height:48px; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:600; font-size:15px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none}
-  .btn-fb:hover{border-color:var(--muted)}
-  .btn-fb svg{width:18px; height:18px; color:var(--accent)}
-  .btn-install{width:100%; min-height:48px; background:var(--accent-soft); color:var(--accent); border:1px solid transparent; font-weight:700; font-size:15px; border-radius:14px}
-  .btn-install[hidden]{display:none}
-  .how a{color:var(--muted)}
-  .foot-links{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:13px}
-  body{padding-bottom:env(safe-area-inset-bottom)}
 
   @media (prefers-reduced-motion: reduce){
     *{animation:none !important; transition:none !important}
@@ -176,59 +179,59 @@
 <body>
 <main class="app">
   <header class="top">
-    <h1 class="brand">Sfida del <span>giorno</span></h1>
+    <h1 class="brand" id="brand">Sfida</h1>
     <p class="date" id="date">—</p>
   </header>
 
   <article class="card" id="card">
-    <div class="stamp" aria-hidden="true">Fatto</div>
+    <div class="stamp" id="stamp" aria-hidden="true">Done</div>
     <div class="eyebrow">
       <span class="chip" id="chip"><i></i><span id="chipName">—</span></span>
-      <span class="swapped-tag" id="swappedTag" hidden>sfida cambiata</span>
+      <span class="swapped-tag" id="swappedTag" hidden></span>
     </div>
     <p class="challenge" id="text">—</p>
-    <p class="why" id="why"><b>Perché</b><span id="whyText">—</span></p>
-    <button class="btn btn-done" id="btnDone" type="button">Fatto!</button>
+    <p class="why" id="why"><b id="whyLabel">Why</b><span id="whyText">—</span></p>
+    <button class="btn btn-done" id="btnDone" type="button">Done!</button>
     <div class="after" id="after">
       <p id="afterText"></p>
-      <button class="btn btn-undo" id="btnUndo" type="button">Annulla</button>
+      <button class="btn btn-undo" id="btnUndo" type="button">Undo</button>
     </div>
   </article>
 
-  <div class="stats" aria-label="I tuoi numeri">
-    <div class="stat"><span class="v" id="vStreak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 4.2 5.2 6 5.2 11a5.2 5.2 0 0 1-10.4 0c0-2.1.9-3.7 2.2-5 .1 2 .9 3.2 2.1 3.4C11.2 8.6 10.6 5.4 12 2z" fill="currentColor"/></svg><span>0</span></span><span class="l">Serie</span></div>
-    <div class="stat"><span class="v" id="vBest">0</span><span class="l">Record</span></div>
-    <div class="stat"><span class="v" id="vTotal">0</span><span class="l">Completate</span></div>
+  <div class="stats" id="stats" aria-label="Your numbers">
+    <div class="stat"><span class="v" id="vStreak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 4.2 5.2 6 5.2 11a5.2 5.2 0 0 1-10.4 0c0-2.1.9-3.7 2.2-5 .1 2 .9 3.2 2.1 3.4C11.2 8.6 10.6 5.4 12 2z" fill="currentColor"/></svg><span>0</span></span><span class="l" id="lStreak">Streak</span></div>
+    <div class="stat"><span class="v" id="vBest">0</span><span class="l" id="lBest">Best</span></div>
+    <div class="stat"><span class="v" id="vTotal">0</span><span class="l" id="lTotal">Completed</span></div>
   </div>
 
   <section>
-    <div class="sec-h"><h2>Ultime quattro settimane</h2><small id="gridRange"></small></div>
-    <div class="grid" id="grid" role="img" aria-label="Calendario degli ultimi 28 giorni"></div>
+    <div class="sec-h"><h2 id="gridTitle">Last four weeks</h2><small id="gridRange"></small></div>
+    <div class="grid" id="grid" role="img" aria-label="Calendar of the last 28 days"></div>
   </section>
 
   <section>
     <div class="actions">
-      <button class="btn btn-sec" id="btnSwap" type="button">Cambia sfida</button>
-      <button class="btn btn-sec" id="btnShare" type="button">Condividi</button>
+      <button class="btn btn-sec" id="btnSwap" type="button">Swap challenge</button>
+      <button class="btn btn-sec" id="btnShare" type="button">Share</button>
     </div>
-    <p class="hint" id="swapHint">Puoi cambiare la sfida una volta al giorno.</p>
-    <a class="btn-fb" href="https://docs.google.com/forms/d/e/1FAIpQLSfcSHVdqzC_vUE8eYLzay0kJs-D1uarMKkdbdt2P8CVXwHz2A/viewform" target="_blank" rel="noopener">
+    <p class="hint" id="swapHint"></p>
+    <a class="btn-fb" id="fbLink" href="https://docs.google.com/forms/d/e/1FAIpQLSfcSHVdqzC_vUE8eYLzay0kJs-D1uarMKkdbdt2P8CVXwHz2A/viewform" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H7l-3 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
-      Dimmi cosa ne pensi
+      <span id="fbText">Tell me what you think</span>
     </a>
-    <button class="btn btn-install" id="btnInstall" type="button" hidden>Installa sul telefono</button>
+    <button class="btn btn-install" id="btnInstall" type="button" hidden>Install on your phone</button>
   </section>
 
   <section>
-    <div class="sec-h"><h2>Sfide completate</h2><small id="histCount"></small></div>
+    <div class="sec-h"><h2 id="histTitle">Completed challenges</h2><small id="histCount"></small></div>
     <ul class="hist" id="hist"></ul>
-    <p class="empty" id="histEmpty">Il tuo primo timbro comparirà qui.</p>
+    <p class="empty" id="histEmpty"></p>
   </section>
 
   <footer class="how">
-    <p><strong>Come funziona.</strong> Ogni giorno una sfida nuova, piccola e concreta. La fai, premi <strong>Fatto</strong> e metti un timbro. I giorni di fila formano la tua serie: salta un giorno e riparti da zero.</p>
-    <p><strong>Per averla come un'app:</strong> premi <strong>Installa sul telefono</strong> se compare, oppure apri il menu ⋮ di Chrome e scegli <strong>Installa app</strong> / <strong>Aggiungi a schermata Home</strong>.</p>
-    <p class="foot-links"><a href="./privacy.html">Privacy</a><span>Versione 1.0.0</span></p>
+    <p id="howText"></p>
+    <p id="installText" class="p-install"></p>
+    <p class="foot-links"><a href="./privacy.html">Privacy</a><span id="versionText"></span><button class="lang" id="btnLang" type="button" aria-label="Change language"></button></p>
   </footer>
 </main>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
@@ -236,13 +239,81 @@
 <script>
 (function(){
   'use strict';
+  var VERSION = '1.1.0';
 
-  // ---------- contenuti ----------
+  // ---------- lingua / language ----------
+  // Italiano se il telefono è in italiano, inglese per tutti gli altri; il pulsante in fondo permette di cambiare.
+  var LANG_KEY = 'sfida-lang';
+  function detectLang() {
+    try { var s = localStorage.getItem(LANG_KEY); if (s === 'it' || s === 'en') return s; } catch (e) {}
+    var nl = (navigator.language || '').toLowerCase();
+    return nl.indexOf('it') === 0 ? 'it' : 'en';
+  }
+  var LANG = detectLang();
+  function locale() {
+    if (LANG === 'it') return 'it-IT';
+    var nl = navigator.language || '';
+    return /^en/i.test(nl) ? nl : 'en-US';
+  }
+
+  var T = {
+    it: {
+      title: 'Sfida del giorno',
+      brand: 'Sfida del <span>giorno</span>',
+      stamp: 'Fatto', swapped: 'sfida cambiata', why: 'Perché', done: 'Fatto!', undo: 'Annulla',
+      afterTail: ' Torna domani per la prossima sfida.',
+      statsAria: 'I tuoi numeri', streak: 'Serie', best: 'Record', total: 'Completate',
+      gridTitle: 'Ultime quattro settimane', gridAria: 'Calendario degli ultimi 28 giorni',
+      swap: 'Cambia sfida', share: 'Condividi',
+      hint: 'Puoi cambiare la sfida una volta al giorno.',
+      hintDone: 'Sfida completata: domani ne arriva una nuova.',
+      hintSwapped: 'Sfida cambiata. Domani ne arriva una nuova.',
+      feedback: 'Dimmi cosa ne pensi', install: 'Installa sul telefono',
+      histTitle: 'Sfide completate', histEmpty: 'Il tuo primo timbro comparirà qui.',
+      stamp1: '1 timbro', stampN: ' timbri',
+      how: '<strong>Come funziona.</strong> Ogni giorno una sfida nuova, piccola e concreta. La fai, premi <strong>Fatto</strong> e metti un timbro. I giorni di fila formano la tua serie: salta un giorno e riparti da zero.',
+      installHow: '<strong>Per averla come un’app:</strong> premi <strong>Installa sul telefono</strong> se compare, oppure apri il menu ⋮ di Chrome e scegli <strong>Installa app</strong> / <strong>Aggiungi a schermata Home</strong>.',
+      version: 'Versione ', langBtn: 'English', langAria: 'Switch to English',
+      shareTitle: 'Sfida del giorno',
+      shareDone1: 'Sfida del giorno: «', shareDone2: '» — fatta! Serie: ', day1: ' giorno.', dayN: ' giorni.',
+      shareTodo1: 'La mia sfida di oggi: «', shareTodo2: '». Ci provi anche tu?',
+      copied: 'Testo copiato: incollalo dove vuoi', copyFail: 'Non riesco a copiare su questo dispositivo', noShare: 'Condivisione non disponibile qui',
+      installed: 'App installata'
+    },
+    en: {
+      title: 'Sfida · Today’s challenge',
+      brand: 'Today’s <span>Sfida</span>',
+      stamp: 'Done', swapped: 'challenge swapped', why: 'Why', done: 'Done!', undo: 'Undo',
+      afterTail: ' Come back tomorrow for the next one.',
+      statsAria: 'Your numbers', streak: 'Streak', best: 'Best', total: 'Completed',
+      gridTitle: 'Last four weeks', gridAria: 'Calendar of the last 28 days',
+      swap: 'Swap challenge', share: 'Share',
+      hint: 'You can swap the challenge once a day.',
+      hintDone: 'Challenge done: a new one arrives tomorrow.',
+      hintSwapped: 'Challenge swapped. A new one arrives tomorrow.',
+      feedback: 'Tell me what you think', install: 'Install on your phone',
+      histTitle: 'Completed challenges', histEmpty: 'Your first stamp will show up here.',
+      stamp1: '1 stamp', stampN: ' stamps',
+      how: '<strong>How it works.</strong> Every day, one new challenge: small and concrete. You do it, press <strong>Done</strong> and get a stamp. Days in a row build your streak: skip a day and you start over.',
+      installHow: '<strong>To use it as an app:</strong> tap <strong>Install on your phone</strong> if it appears, or open Chrome’s ⋮ menu and choose <strong>Install app</strong> / <strong>Add to Home screen</strong>.',
+      version: 'Version ', langBtn: 'Italiano', langAria: 'Passa all’italiano',
+      shareTitle: 'Sfida',
+      shareDone1: 'Today’s Sfida: “', shareDone2: '” — done! Streak: ', day1: ' day.', dayN: ' days.',
+      shareTodo1: 'My challenge today: “', shareTodo2: '”. Care to try it too?',
+      copied: 'Copied: paste it wherever you like', copyFail: 'Can’t copy on this device', noShare: 'Sharing isn’t available here',
+      installed: 'App installed'
+    }
+  };
+  function t(k) { return T[LANG][k]; }
+
+  // ---------- contenuti / content ----------
   var CATS = [
-    {n:'Movimento', v:'--c0'}, {n:'Mente', v:'--c1'}, {n:'Relazioni', v:'--c2'}, {n:'Creatività', v:'--c3'},
-    {n:'Gentilezza', v:'--c4'}, {n:'Ordine', v:'--c5'}, {n:'Digital detox', v:'--c6'}
+    {it:'Movimento', en:'Movement', v:'--c0'}, {it:'Mente', en:'Mind', v:'--c1'}, {it:'Relazioni', en:'Relationships', v:'--c2'},
+    {it:'Creatività', en:'Creativity', v:'--c3'}, {it:'Gentilezza', en:'Kindness', v:'--c4'}, {it:'Ordine', en:'Order', v:'--c5'},
+    {it:'Digital detox', en:'Digital detox', v:'--c6'}
   ];
-  var RAW = [
+  var RAW = {};
+  RAW.it = [
     [ // Movimento
       ['Fai una passeggiata di 15 minuti senza telefono.', 'Muoversi a passo tranquillo schiarisce la testa più di quanto sembri.'],
       ['Sali le scale invece di prendere l’ascensore, tutto il giorno.', 'Piccoli sforzi ripetuti contano più di un allenamento saltato.'],
@@ -342,11 +413,113 @@
       ['Un pomeriggio senza social: solo messaggi diretti a persone reali.', 'Il feed può aspettare, le persone no.']
     ]
   ];
-  // Lista unica, a rotazione tra le categorie: la sfida n è della categoria n % 7
+  RAW.en = [
+    [ // Movement
+      ['Take a 15-minute walk without your phone.', 'An easy walk clears your head more than you’d think.'],
+      ['Take the stairs instead of the elevator, all day long.', 'Small efforts, repeated, count for more than a workout you skipped.'],
+      ['Do 20 squats the next time you get up from your chair.', 'Two minutes is enough to wake up your legs and get the blood moving.'],
+      ['Stretch for 5 minutes before bed.', 'Loosening up your muscles helps you sleep better.'],
+      ['Dance to one whole song, alone, at full volume.', 'The best kind of exercise is the kind that makes you smile.'],
+      ['Every hour, stand up and walk for 2 minutes.', 'Long stretches of sitting wear down your back and your focus.'],
+      ['Run an errand on foot or by bike instead of by car.', 'You turn a chore into free exercise.'],
+      ['Hold a plank for 30 seconds, or as long as you can.', 'A strong core holds your posture up all day.'],
+      ['Drink a glass of water every time you pick up your phone.', 'We drink too little and check our phones a lot: pair the two.'],
+      ['Do 10 push-ups, on your knees if you like.', 'The number doesn’t matter. Doing them today does.'],
+      ['Go for a walk at sunset.', 'Evening light helps set your sleep rhythm.'],
+      ['Try an exercise you’ve never done: look up a 5-minute video.', 'Novelty keeps both body and mind awake.']
+    ],
+    [ // Mind
+      ['Read 10 pages of a book.', 'Ten pages a day adds up to about fifteen books a year.'],
+      ['Write down three things that went well today.', 'Training your eye on the good things shifts your mood over time.'],
+      ['Learn 5 words in a language that intrigues you.', 'That’s the only way a vocabulary grows: five words at a time.'],
+      ['Sit for 10 minutes in silence, no screens, eyes closed.', 'Your brain needs empty pauses to tidy itself up.'],
+      ['Watch a 15-minute video on a topic you know nothing about.', 'Curiosity is a muscle: it grows with use.'],
+      ['Handwrite one page of whatever is on your mind, without rereading it.', 'Putting things on paper makes them lighter to carry.'],
+      ['Solve a crossword, a sudoku or a puzzle.', 'A small puzzle is a gym for your attention.'],
+      ['Write down 3 things you want to learn within a year.', 'Writing them down is the first real step toward starting.'],
+      ['Listen to a podcast on a topic far from your line of work.', 'The best ideas come from fields other than your own.'],
+      ['Before bed, name one thing you learned today.', 'Ending the day with a useful question sharpens your memory.'],
+      ['Breathe slowly for 5 minutes: 4 seconds in, 6 seconds out.', 'Slow breathing lowers stress almost immediately.'],
+      ['Explain something you’re good at to someone, or to yourself out loud.', 'Explaining is the fastest way to truly understand.']
+    ],
+    [ // Relationships
+      ['Message a friend you haven’t heard from in months.', 'Friendships are kept alive by a message, not by good intentions.'],
+      ['Call a parent, a grandparent or a relative and ask how they are. Really ask.', 'A 5-minute call is worth more than a hundred “I’ll call them later”.'],
+      ['Give someone a sincere compliment.', 'People remember a genuine compliment for a long time.'],
+      ['Have dinner with no phones at the table.', 'Full attention is the rarest gift you can give the people close to you.'],
+      ['Ask someone “how was your day?” and listen all the way to the end.', 'Listening without interrupting is rarer than you think.'],
+      ['Thank someone for one specific thing they did for you.', 'Gratitude said out loud strengthens bonds.'],
+      ['Suggest meeting up with someone this week, and set the day.', '“We should meet up” without a date never happens.'],
+      ['Introduce yourself to a neighbor or a colleague you’ve never spoken to.', 'Every relationship started with a simple “hi”.'],
+      ['Share a good memory with someone who was there for it.', 'Remembering together does both of you good.'],
+      ['Send a photo or a song to the person it reminds you of.', 'A small gesture says “I thought of you” better than a thousand words.'],
+      ['Ask someone you admire for advice.', 'People love feeling useful, and you learn something.'],
+      ['Apologize for a small thing you’ve left hanging.', 'Small apologies prevent big grudges.']
+    ],
+    [ // Creativity
+      ['Take a photo of something beautiful you usually don’t notice.', 'Looking for beauty trains you to see it everywhere.'],
+      ['Draw something for 10 minutes. Badly is fine.', 'Creativity grows with practice, not talent.'],
+      ['Write a four-line poem about your day.', 'Four lines are enough to see the day from a new angle.'],
+      ['Cook a new recipe, or change one you know.', 'The kitchen is the creative lab closest to hand.'],
+      ['Make up a five-sentence story starting from the last thing you saw.', 'Ideas show up when you force them to start.'],
+      ['Listen to a whole album in a genre you never listen to.', 'Your ear only widens by listening.'],
+      ['Rearrange one corner of your home in a different way.', 'Changing the space changes the way you look at it.'],
+      ['Write down 10 ideas, any ideas, without judging them.', 'Quantity sets quality free.'],
+      ['Hum or whistle a tune you made up yourself.', 'Music belongs to everyone, even those who “can’t do it”.'],
+      ['Draw or doodle on the back of a receipt.', 'Making something with what’s at hand is the purest form of creativity.'],
+      ['Look at one work of art, even online, for 5 full minutes.', 'Looking for a long time teaches you to really see.'],
+      ['Write a letter to yourself one year from now.', 'Future you will thank you.']
+    ],
+    [ // Kindness
+      ['Leave a positive review for a shop or café you liked.', 'Five minutes of your time can bring someone business.'],
+      ['Hold the door, give up your seat, let someone go first: one kind gesture to a stranger.', 'Kindness is contagious: whoever receives it passes it on.'],
+      ['Buy someone a coffee.', 'A coffee on you is a small celebration in an ordinary day.'],
+      ['Do a chore that’s usually someone else’s job.', 'Lightening someone’s load without being asked counts double.'],
+      ['Donate something you no longer use.', 'What clutters your space is exactly what someone else needs.'],
+      ['Write a thank-you note by hand.', 'Paper gets kept; messages get forgotten.'],
+      ['Compliment the person serving you at the café, the shop or the office.', 'People who work with the public get far more complaints than thanks.'],
+      ['Smile at the first 3 people you meet.', 'A smile gets there before words do.'],
+      ['Help someone with something you’re good at.', 'Your skills are worth more when you share them.'],
+      ['Forgive a small wrong and let it go.', 'The hardest kindness is toward someone who annoyed us.'],
+      ['Be kind to yourself: take a break without feeling guilty.', 'Those who treat themselves well have more energy for others.'],
+      ['Leave a kind note for someone you live or work with. A sticky note will do.', 'A small thought found by chance lights up a whole day.']
+    ],
+    [ // Order
+      ['Tidy your desk or the kitchen counter.', 'A clear surface clears space in your head too.'],
+      ['Delete 20 useless photos or files from your phone.', 'Less digital noise, more lightness.'],
+      ['Fix something broken or crooked you’ve been putting off for weeks.', 'Small unfinished things weigh more than they seem.'],
+      ['Lay out tomorrow’s clothes and things tonight.', 'Your morning will start without the rush.'],
+      ['Delete 30 old emails or clear today’s inbox.', 'A clean inbox is one less worry.'],
+      ['Throw away or recycle 5 things you don’t use.', 'Every object gone is one less decision to make.'],
+      ['Write down the 3 most important things to do tomorrow.', 'Deciding in the evening frees your mind overnight.'],
+      ['Tidy one drawer. Just one.', 'One drawer today, a tidy home in a month.'],
+      ['Delete the apps you haven’t opened in over a month.', 'A lighter phone is less distracting.'],
+      ['Make your bed as soon as you wake up.', 'The first task done pulls the rest of the day along.'],
+      ['Check this week’s calendar and fill in what’s missing.', 'Knowing what’s coming eases the worry about what might.'],
+      ['Wash the dishes right after eating.', 'Two minutes now are worth ten tomorrow.']
+    ],
+    [ // Digital detox
+      ['No phone for the first hour after you wake up.', 'You start the day with your own thoughts, not everyone else’s.'],
+      ['Mute social media notifications for the whole day.', 'You decide when to look, not the app.'],
+      ['Leave your phone in another room while you eat.', 'A meal without a screen lasts longer and fills you up more.'],
+      ['One screen-free hour tonight: a book, music, conversation.', 'Your eyes and your sleep will thank you.'],
+      ['Delete one app that steals your time and gives nothing back.', 'Every app gone is minutes gained.'],
+      ['No phone in the bathroom today.', 'A small boundary that gives your thoughts room again.'],
+      ['Switch your phone screen to black and white for a day.', 'Without color, apps lose most of their pull.'],
+      ['Get through something boring with no distractions: the queue, the wait, the commute.', 'Boredom is where ideas are born.'],
+      ['Charge your phone outside the bedroom tonight.', 'Sleep improves when the screen isn’t within reach.'],
+      ['Check yesterday’s screen time and set a limit for today.', 'Measuring is the first step to changing.'],
+      ['Call instead of texting, at least once today.', 'A voice carries what text loses.'],
+      ['An afternoon without social media: only direct messages to real people.', 'The feed can wait. People can’t.']
+    ]
+  ];
+  // Lista unica, a rotazione tra le categorie: la sfida n è della categoria n % 7. Gli id non dipendono dalla lingua.
   var CH = [];
-  for (var i = 0; i < 12; i++) for (var c = 0; c < 7; c++) CH.push({ id: c * 12 + i, c: c, t: RAW[c][i][0], w: RAW[c][i][1] });
+  for (var i = 0; i < 12; i++) for (var c = 0; c < 7; c++) CH.push({ id: c * 12 + i, c: c, i: i });
   var N = CH.length, STEP = 17; // 17 e 84 sono coprimi: 84 giorni senza ripetizioni, mai due giorni di fila la stessa categoria
   var byId = {}; CH.forEach(function (x) { byId[x.id] = x; });
+  function chText(ch) { return RAW[LANG][ch.c][ch.i][0]; }
+  function chWhy(ch) { return RAW[LANG][ch.c][ch.i][1]; }
 
   // ---------- date ----------
   function key(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
@@ -355,10 +528,10 @@
   function mainFor(d) { return CH[((dayIndex(d) * STEP) % N + N) % N]; }
   function altFor(d) { return CH[(((dayIndex(d) * STEP) % N + N) % N + 1) % N]; }
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
-  function fmtLong(d) { return cap(d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })); }
-  function fmtShort(d) { return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }).replace('.', ''); }
+  function fmtLong(d) { return cap(d.toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })); }
+  function fmtShort(d) { return d.toLocaleDateString(locale(), { day: 'numeric', month: 'short' }).replace('.', ''); }
 
-  // ---------- stato ----------
+  // ---------- stato / state ----------
   var KEY = 'sfida-del-giorno-v1';
   var S = { done: {}, swapped: {}, best: 0 };
   function load() { try { var r = localStorage.getItem(KEY); if (r) { var o = JSON.parse(r); S = { done: o.done || {}, swapped: o.swapped || {}, best: o.best || 0 }; } } catch (e) {} }
@@ -372,50 +545,88 @@
     return n;
   }
   function cheer(n) {
-    if (n >= 30) return 'Trenta giorni di fila. Ormai fa parte di te.';
-    if (n >= 14) return 'Due settimane di fila: la costanza è il tuo superpotere.';
-    if (n >= 7) return 'Una settimana intera, senza saltare un giorno.';
-    if (n >= 3) return n + ' giorni di fila: sta diventando un’abitudine.';
-    if (n === 2) return 'Due timbri di fila. Domani il terzo.';
-    return 'Primo timbro! Domani il secondo.';
+    if (LANG === 'it') {
+      if (n >= 30) return 'Trenta giorni di fila. Ormai fa parte di te.';
+      if (n >= 14) return 'Due settimane di fila: la costanza è il tuo superpotere.';
+      if (n >= 7) return 'Una settimana intera, senza saltare un giorno.';
+      if (n >= 3) return n + ' giorni di fila: sta diventando un’abitudine.';
+      if (n === 2) return 'Due timbri di fila. Domani il terzo.';
+      return 'Primo timbro! Domani il secondo.';
+    }
+    if (n >= 30) return 'Thirty days in a row. It’s part of you now.';
+    if (n >= 14) return 'Two weeks straight: consistency is your superpower.';
+    if (n >= 7) return 'A whole week without missing a day.';
+    if (n >= 3) return n + ' days in a row: it’s becoming a habit.';
+    if (n === 2) return 'Two stamps in a row. Tomorrow makes three.';
+    return 'First stamp! Tomorrow the second.';
   }
 
   // ---------- DOM ----------
   var $ = function (id) { return document.getElementById(id); };
   var el = {
-    date: $('date'), card: $('card'), chip: $('chip'), chipName: $('chipName'), swappedTag: $('swappedTag'),
-    text: $('text'), whyText: $('whyText'), btnDone: $('btnDone'), after: $('after'), afterText: $('afterText'), btnUndo: $('btnUndo'),
-    vStreak: $('vStreak'), vBest: $('vBest'), vTotal: $('vTotal'), grid: $('grid'), gridRange: $('gridRange'),
-    btnSwap: $('btnSwap'), btnShare: $('btnShare'), swapHint: $('swapHint'), hist: $('hist'), histEmpty: $('histEmpty'), histCount: $('histCount'), toast: $('toast')
+    brand: $('brand'), date: $('date'), card: $('card'), stamp: $('stamp'), chip: $('chip'), chipName: $('chipName'), swappedTag: $('swappedTag'),
+    text: $('text'), whyLabel: $('whyLabel'), whyText: $('whyText'), btnDone: $('btnDone'), after: $('after'), afterText: $('afterText'), btnUndo: $('btnUndo'),
+    stats: $('stats'), vStreak: $('vStreak'), vBest: $('vBest'), vTotal: $('vTotal'), lStreak: $('lStreak'), lBest: $('lBest'), lTotal: $('lTotal'),
+    gridTitle: $('gridTitle'), grid: $('grid'), gridRange: $('gridRange'),
+    btnSwap: $('btnSwap'), btnShare: $('btnShare'), swapHint: $('swapHint'), fbText: $('fbText'), btnInstall: $('btnInstall'),
+    histTitle: $('histTitle'), hist: $('hist'), histEmpty: $('histEmpty'), histCount: $('histCount'),
+    howText: $('howText'), installText: $('installText'), versionText: $('versionText'), btnLang: $('btnLang'), toast: $('toast')
   };
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
   var shownKey = null, toastTimer = null;
   function toast(msg) { el.toast.textContent = msg; el.toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.toast.classList.remove('show'); }, 2200); }
+
+  // Testi fissi dell'interfaccia, nella lingua scelta
+  function applyLang() {
+    document.documentElement.lang = LANG;
+    document.title = t('title');
+    el.brand.innerHTML = t('brand');
+    el.stamp.textContent = t('stamp');
+    el.swappedTag.textContent = t('swapped');
+    el.whyLabel.textContent = t('why');
+    el.btnDone.textContent = t('done');
+    el.btnUndo.textContent = t('undo');
+    el.stats.setAttribute('aria-label', t('statsAria'));
+    el.lStreak.textContent = t('streak'); el.lBest.textContent = t('best'); el.lTotal.textContent = t('total');
+    el.gridTitle.textContent = t('gridTitle');
+    el.grid.setAttribute('aria-label', t('gridAria'));
+    el.btnSwap.textContent = t('swap');
+    el.btnShare.textContent = t('share');
+    el.fbText.textContent = t('feedback');
+    el.btnInstall.textContent = t('install');
+    el.histTitle.textContent = t('histTitle');
+    el.histEmpty.textContent = t('histEmpty');
+    el.howText.innerHTML = t('how');
+    el.installText.innerHTML = t('installHow');
+    el.versionText.textContent = t('version') + VERSION;
+    el.btnLang.textContent = t('langBtn');
+    el.btnLang.setAttribute('aria-label', t('langAria'));
+  }
 
   function render(just) {
     var today = new Date(), k = key(today), ch = currentFor(today), done = !!S.done[k];
     shownKey = k;
     el.date.textContent = fmtLong(today);
     el.chip.style.setProperty('--cat', 'var(' + CATS[ch.c].v + ')');
-    el.chipName.textContent = CATS[ch.c].n;
+    el.chipName.textContent = CATS[ch.c][LANG];
     el.swappedTag.hidden = !S.swapped[k];
-    el.text.textContent = ch.t;
-    el.whyText.textContent = ch.w;
+    el.text.textContent = chText(ch);
+    el.whyText.textContent = chWhy(ch);
 
     var st = streak(), total = Object.keys(S.done).length;
     if (st > S.best) { S.best = st; save(); }
     el.card.classList.toggle('is-done', done);
     el.card.classList.toggle('just', !!just);
-    if (done) el.afterText.innerHTML = '<strong>' + esc(cheer(st)) + '</strong> Torna domani per la prossima sfida.';
+    if (done) el.afterText.innerHTML = '<strong>' + esc(cheer(st)) + '</strong>' + esc(t('afterTail'));
 
     el.vStreak.querySelector('span').textContent = st;
     el.vStreak.classList.toggle('hot', st > 0);
     el.vBest.textContent = S.best;
     el.vTotal.textContent = total;
 
-    // griglia: ultimi 28 giorni, oggi in fondo
+    // griglia: ultimi 28 giorni, oggi in fondo / grid: last 28 days, today last
     var start = addDays(today, -27), html = '';
-    for (var i = 0; i < 7; i++) html += '<div class="wd">' + esc(addDays(start, i).toLocaleDateString('it-IT', { weekday: 'narrow' })) + '</div>';
+    for (var i = 0; i < 7; i++) html += '<div class="wd">' + esc(addDays(start, i).toLocaleDateString(locale(), { weekday: 'narrow' })) + '</div>';
     for (var j = 0; j < 28; j++) {
       var d = addDays(start, j), dk = key(d), cls = 'day' + (S.done[dk] ? ' done' : '') + (dk === k ? ' today' : '');
       html += '<div class="' + cls + '" title="' + esc(fmtLong(d)) + '">' + d.getDate() + '</div>';
@@ -423,20 +634,20 @@
     el.grid.innerHTML = html;
     el.gridRange.textContent = fmtShort(start) + ' – ' + fmtShort(today);
 
-    // cambio sfida
+    // cambio sfida / swap
     var canSwap = !done && !S.swapped[k];
     el.btnSwap.disabled = !canSwap;
-    el.swapHint.textContent = done ? 'Sfida completata: domani ne arriva una nuova.' : (S.swapped[k] ? 'Sfida cambiata. Domani ne arriva una nuova.' : 'Puoi cambiare la sfida una volta al giorno.');
+    el.swapHint.textContent = done ? t('hintDone') : (S.swapped[k] ? t('hintSwapped') : t('hint'));
 
-    // storico
+    // storico / history
     var keys = Object.keys(S.done).sort().reverse().slice(0, 8), h = '';
-    keys.forEach(function (dk) { var it = byId[S.done[dk].id]; if (!it) return; var p = dk.split('-'); var dd = new Date(+p[0], +p[1] - 1, +p[2]); h += '<li><span class="d">' + esc(fmtShort(dd)) + '</span><span>' + esc(it.t) + '</span></li>'; });
+    keys.forEach(function (dk) { var it = byId[S.done[dk].id]; if (!it) return; var p = dk.split('-'); var dd = new Date(+p[0], +p[1] - 1, +p[2]); h += '<li><span class="d">' + esc(fmtShort(dd)) + '</span><span>' + esc(chText(it)) + '</span></li>'; });
     el.hist.innerHTML = h;
     el.histEmpty.hidden = keys.length > 0;
-    el.histCount.textContent = total > 0 ? (total === 1 ? '1 timbro' : total + ' timbri') : '';
+    el.histCount.textContent = total > 0 ? (total === 1 ? t('stamp1') : total + t('stampN')) : '';
   }
 
-  // ---------- azioni ----------
+  // ---------- azioni / actions ----------
   el.btnDone.addEventListener('click', function () {
     var today = new Date(), k = key(today), ch = currentFor(today);
     S.done[k] = { id: ch.id, ts: Date.now() }; save();
@@ -453,39 +664,45 @@
   el.btnShare.addEventListener('click', function () {
     var today = new Date(), ch = currentFor(today), done = !!S.done[key(today)], st = streak();
     var text = done
-      ? 'Sfida del giorno: «' + ch.t + '» — fatta! Serie: ' + st + (st === 1 ? ' giorno.' : ' giorni.')
-      : 'La mia sfida di oggi: «' + ch.t + '». Ci provi anche tu?';
+      ? t('shareDone1') + chText(ch) + t('shareDone2') + st + (st === 1 ? t('day1') : t('dayN'))
+      : t('shareTodo1') + chText(ch) + t('shareTodo2');
     if (navigator.share) {
-      navigator.share({ title: 'Sfida del giorno', text: text }).catch(function () {});
+      navigator.share({ title: t('shareTitle'), text: text }).catch(function () {});
       return;
     }
     if (navigator.clipboard && navigator.clipboard.writeText) {
-      navigator.clipboard.writeText(text).then(function () { toast('Testo copiato: incollalo dove vuoi'); }, function () { toast('Non riesco a copiare su questo dispositivo'); });
-    } else { toast('Condivisione non disponibile qui'); }
+      navigator.clipboard.writeText(text).then(function () { toast(t('copied')); }, function () { toast(t('copyFail')); });
+    } else { toast(t('noShare')); }
+  });
+  el.btnLang.addEventListener('click', function () {
+    LANG = LANG === 'it' ? 'en' : 'it';
+    try { localStorage.setItem(LANG_KEY, LANG); } catch (e) {}
+    applyLang(); render(false);
   });
 
-  // cambio giorno mentre la pagina resta aperta
+  // cambio giorno mentre la pagina resta aperta / day change while the page stays open
   setInterval(function () { if (key(new Date()) !== shownKey) render(false); }, 30000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden && key(new Date()) !== shownKey) render(false); });
 
-  load();
-  render(false);
-
-  // ---------- installazione (Android/Chrome) ----------
-  var deferredPrompt = null, btnInstall = $('btnInstall');
+  // ---------- installazione (Android/Chrome) / install prompt ----------
+  var deferredPrompt = null;
   var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
   window.addEventListener('beforeinstallprompt', function (e) {
     e.preventDefault(); deferredPrompt = e;
-    if (!standalone) btnInstall.hidden = false;
+    if (!standalone) el.btnInstall.hidden = false;
   });
-  btnInstall.addEventListener('click', function () {
+  el.btnInstall.addEventListener('click', function () {
     if (!deferredPrompt) return;
     deferredPrompt.prompt();
-    deferredPrompt.userChoice.then(function () { deferredPrompt = null; btnInstall.hidden = true; });
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; el.btnInstall.hidden = true; });
   });
-  window.addEventListener('appinstalled', function () { btnInstall.hidden = true; toast('App installata'); });
+  window.addEventListener('appinstalled', function () { el.btnInstall.hidden = true; toast(t('installed')); });
 
-  // ---------- funziona anche offline ----------
+  load();
+  applyLang();
+  render(false);
+
+  // ---------- funziona anche offline / works offline ----------
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
   }

@@ -1,6 +1,6 @@
-// Sfida del giorno — service worker (versione 1.0.0)
+// Sfida — service worker (versione 1.1.0)
 // Pagina: prima la rete, poi la copia salvata (così gli aggiornamenti arrivano subito e l'app funziona anche offline).
-var CACHE = 'sdg-1.0.0';
+var CACHE = 'sdg-1.1.0';
 var SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './privacy.html'];
 
 self.addEventListener('install', function (e) {

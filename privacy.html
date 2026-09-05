@@ -1,13 +1,13 @@
 <!doctype html>
-<html lang="it">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Privacy – Sfida del giorno</title>
+<title>Privacy – Sfida</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F0482B'/%3E%3Cpath d='M18 33l9 9 19-20' fill='none' stroke='%23fff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>
-  :root{--ground:#F2F0F9;--ink:#1D1A33;--muted:#6B6787;--accent:#F0482B;color-scheme:light}
-  @media (prefers-color-scheme: dark){:root{--ground:#14122A;--ink:#F1EFFA;--muted:#A39FC2;--accent:#FF6A4D;color-scheme:dark}}
+  :root{--ground:#F2F0F9;--ink:#1D1A33;--muted:#6B6787;--line:#DDD9EC;--accent:#F0482B;color-scheme:light}
+  @media (prefers-color-scheme: dark){:root{--ground:#14122A;--ink:#F1EFFA;--muted:#A39FC2;--line:#35325C;--accent:#FF6A4D;color-scheme:dark}}
   body{margin:0;background:var(--ground);color:var(--ink);font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
   main{max-width:640px;margin:0 auto;padding:32px 20px 48px}
   h1{font-size:26px;margin:0 0 4px}
@@ -15,35 +15,92 @@
   h2{font-size:17px;margin:26px 0 6px}
   p{margin:0 0 12px}
   a{color:var(--accent)}
+  .switch{display:flex;gap:10px;align-items:center;font-size:14px;color:var(--muted);margin-bottom:18px}
+  .switch button{appearance:none;background:none;border:1px solid var(--line);color:var(--muted);font:inherit;font-weight:600;padding:4px 11px;border-radius:999px;cursor:pointer}
+  .switch button[aria-pressed="true"]{color:var(--ink);border-color:var(--ink)}
+  .l[hidden]{display:none}
 </style>
 </head>
 <body>
 <main>
-  <h1>Informativa sulla privacy</h1>
-  <p class="sub">Sfida del giorno · aggiornata il 5 settembre 2026</p>
+  <div class="switch" id="switch">
+    <button type="button" data-l="en" aria-pressed="true">English</button>
+    <button type="button" data-l="it" aria-pressed="false">Italiano</button>
+  </div>
 
-  <h2>In breve</h2>
-  <p>Sfida del giorno non raccoglie dati personali. Non ci sono account, non ci sono profili, non c'è pubblicità e non ci sono strumenti di tracciamento.</p>
+  <div class="l" id="l-en" lang="en">
+    <h1>Privacy policy</h1>
+    <p class="sub">Sfida · updated September 5, 2026</p>
 
-  <h2>Dati salvati sul tuo dispositivo</h2>
-  <p>Le sfide completate, la tua serie e il record vengono salvati solo nella memoria del tuo telefono o del tuo browser. Non vengono inviati a nessun server e nessuno può vederli oltre a te. Se cancelli i dati dell'app o del sito, vengono eliminati.</p>
+    <h2>In short</h2>
+    <p>Sfida does not collect personal data. There are no accounts, no profiles, no advertising and no tracking tools.</p>
 
-  <h2>Condivisione</h2>
-  <p>Il pulsante «Condividi» apre il menu di condivisione del tuo dispositivo: sei tu a scegliere se e con chi condividere il testo. L'app non registra nulla di questa operazione.</p>
+    <h2>Data stored on your device</h2>
+    <p>The challenges you complete, your streak and your best streak are saved only in the memory of your phone or browser. They are never sent to any server and nobody but you can see them. If you clear the app's or the site's data, they are deleted. The language you choose is saved the same way.</p>
 
-  <h2>Feedback</h2>
-  <p>Il pulsante «Dimmi cosa ne pensi» apre un modulo Google, anonimo, gestito da Google: si applica l'<a href="https://policies.google.com/privacy?hl=it" rel="noopener">informativa sulla privacy di Google</a>. Le risposte servono solo a migliorare l'app.</p>
+    <h2>Sharing</h2>
+    <p>The "Share" button opens your device's own share menu: you decide whether and with whom to share the text. The app records nothing about it.</p>
 
-  <h2>Caratteri tipografici</h2>
-  <p>I caratteri dell'app sono caricati da Google Fonts. Al primo caricamento il tuo browser contatta i server di Google, che possono registrare dati tecnici come l'indirizzo IP, secondo l'informativa di Google.</p>
+    <h2>Feedback</h2>
+    <p>The "Tell me what you think" button opens an anonymous Google Form run by Google: <a href="https://policies.google.com/privacy" rel="noopener">Google's privacy policy</a> applies. Answers are used only to improve the app.</p>
 
-  <h2>Hosting</h2>
-  <p>Il sito è ospitato su GitHub Pages. Come ogni servizio web, GitHub può registrare dati tecnici di accesso (ad esempio l'indirizzo IP) per motivi di sicurezza, secondo la <a href="https://docs.github.com/it/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">privacy policy di GitHub</a>.</p>
+    <h2>Fonts</h2>
+    <p>The app's fonts are loaded from Google Fonts. On first load your browser contacts Google's servers, which may log technical data such as your IP address, according to Google's policy.</p>
 
-  <h2>Contatti</h2>
-  <p>Per qualsiasi domanda puoi usare il modulo «Dimmi cosa ne pensi» dentro l'app.</p>
+    <h2>Hosting</h2>
+    <p>The site is hosted on GitHub Pages. Like any web service, GitHub may log technical access data (for example IP addresses) for security reasons, according to <a href="https://docs.github.com/en/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">GitHub's privacy statement</a>.</p>
 
-  <p><a href="./">← Torna all'app</a></p>
+    <h2>Contact</h2>
+    <p>For any question, use the "Tell me what you think" form inside the app.</p>
+
+    <p><a href="./">← Back to the app</a></p>
+  </div>
+
+  <div class="l" id="l-it" lang="it" hidden>
+    <h1>Informativa sulla privacy</h1>
+    <p class="sub">Sfida · aggiornata il 5 settembre 2026</p>
+
+    <h2>In breve</h2>
+    <p>Sfida non raccoglie dati personali. Non ci sono account, non ci sono profili, non c'è pubblicità e non ci sono strumenti di tracciamento.</p>
+
+    <h2>Dati salvati sul tuo dispositivo</h2>
+    <p>Le sfide completate, la tua serie e il record vengono salvati solo nella memoria del tuo telefono o del tuo browser. Non vengono inviati a nessun server e nessuno può vederli oltre a te. Se cancelli i dati dell'app o del sito, vengono eliminati. Anche la lingua che scegli viene salvata allo stesso modo.</p>
+
+    <h2>Condivisione</h2>
+    <p>Il pulsante «Condividi» apre il menu di condivisione del tuo dispositivo: sei tu a scegliere se e con chi condividere il testo. L'app non registra nulla di questa operazione.</p>
+
+    <h2>Feedback</h2>
+    <p>Il pulsante «Dimmi cosa ne pensi» apre un modulo Google, anonimo, gestito da Google: si applica l'<a href="https://policies.google.com/privacy?hl=it" rel="noopener">informativa sulla privacy di Google</a>. Le risposte servono solo a migliorare l'app.</p>
+
+    <h2>Caratteri tipografici</h2>
+    <p>I caratteri dell'app sono caricati da Google Fonts. Al primo caricamento il tuo browser contatta i server di Google, che possono registrare dati tecnici come l'indirizzo IP, secondo l'informativa di Google.</p>
+
+    <h2>Hosting</h2>
+    <p>Il sito è ospitato su GitHub Pages. Come ogni servizio web, GitHub può registrare dati tecnici di accesso (ad esempio l'indirizzo IP) per motivi di sicurezza, secondo la <a href="https://docs.github.com/it/site-policy/privacy-policies/github-general-privacy-statement" rel="noopener">privacy policy di GitHub</a>.</p>
+
+    <h2>Contatti</h2>
+    <p>Per qualsiasi domanda puoi usare il modulo «Dimmi cosa ne pensi» dentro l'app.</p>
+
+    <p><a href="./">← Torna all'app</a></p>
+  </div>
 </main>
+<script>
+(function(){
+  var cur = 'en';
+  try { var s = localStorage.getItem('sfida-lang'); if (s === 'it' || s === 'en') cur = s; else if ((navigator.language || '').toLowerCase().indexOf('it') === 0) cur = 'it'; } catch (e) {}
+  function show(l) {
+    cur = l;
+    document.documentElement.lang = l;
+    document.getElementById('l-en').hidden = l !== 'en';
+    document.getElementById('l-it').hidden = l !== 'it';
+    var bs = document.querySelectorAll('#switch button');
+    for (var i = 0; i < bs.length; i++) bs[i].setAttribute('aria-pressed', bs[i].getAttribute('data-l') === l ? 'true' : 'false');
+  }
+  document.getElementById('switch').addEventListener('click', function (e) {
+    var b = e.target.closest('button'); if (b) show(b.getAttribute('data-l'));
+  });
+  show(cur);
+})();
+</script>
 </body>
 </html>
