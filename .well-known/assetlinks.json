@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "io.github.dan39734.sfidadelgiorno",
+        "sha256_cert_fingerprints": ["17:57:F3:93:82:F8:1F:24:57:0E:08:8D:0A:74:E4:C7:4D:31:EA:B8:5E:1F:CD:06:FF:61:9A:17:0C:F5:B0:3D"]
+      }
+    }]
