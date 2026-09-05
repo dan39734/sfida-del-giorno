@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sfida del giorno</title>
+<meta name="description" content="Ogni giorno una piccola sfida: falla, premi Fatto e costruisci la tua serie di giorni.">
+<meta name="theme-color" content="#F0482B">
+<meta name="application-name" content="Sfida del giorno">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sfida del giorno">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta property="og:title" content="Sfida del giorno">
+<meta property="og:description" content="Ogni giorno una piccola sfida. Falla, metti il timbro, costruisci la tua serie.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="./icon-512.png">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23F0482B'/%3E%3Cpath d='M18 33l9 9 19-20' fill='none' stroke='%23fff' stroke-width='7' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+  :root{
+    --ground:#F2F0F9; --surface:#FFFFFF; --ink:#1D1A33; --muted:#6B6787; --line:#DDD9EC;
+    --accent:#F0482B; --accent-ink:#FFFFFF; --accent-soft:rgba(240,72,43,.12);
+    --gold:#E9A81C; --stamp:#E0432B; --stamp-blend:multiply;
+    --shadow:0 18px 40px -18px rgba(29,26,51,.28), 0 1px 0 rgba(29,26,51,.04);
+    --c0:#177A4F; --c1:#3B5BDB; --c2:#C93A78; --c3:#8144C5; --c4:#C46A0F; --c5:#0F8B9C; --c6:#5E5E7E;
+    --focus:rgba(240,72,43,.55);
+    color-scheme:light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --ground:#14122A; --surface:#1F1C3B; --ink:#F1EFFA; --muted:#A39FC2; --line:#35325C;
+      --accent:#FF6A4D; --accent-ink:#1A1026; --accent-soft:rgba(255,106,77,.16);
+      --gold:#FFC54D; --stamp:#FF5B40; --stamp-blend:normal;
+      --shadow:0 18px 40px -18px rgba(0,0,0,.6);
+      --c0:#3DD598; --c1:#8DA2FF; --c2:#FF7AB0; --c3:#C084FC; --c4:#FFA94D; --c5:#3CC7DA; --c6:#A9A9C8;
+      --focus:rgba(255,106,77,.6);
+      color-scheme:dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --ground:#14122A; --surface:#1F1C3B; --ink:#F1EFFA; --muted:#A39FC2; --line:#35325C;
+    --accent:#FF6A4D; --accent-ink:#1A1026; --accent-soft:rgba(255,106,77,.16);
+    --gold:#FFC54D; --stamp:#FF5B40; --stamp-blend:normal;
+    --shadow:0 18px 40px -18px rgba(0,0,0,.6);
+    --c0:#3DD598; --c1:#8DA2FF; --c2:#FF7AB0; --c3:#C084FC; --c4:#FFA94D; --c5:#3CC7DA; --c6:#A9A9C8;
+    --focus:rgba(255,106,77,.6);
+    color-scheme:dark;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  body{
+    margin:0; min-height:100vh; background:var(--ground); color:var(--ink);
+    font-family:"Figtree",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+    font-size:16px; line-height:1.5; -webkit-font-smoothing:antialiased;
+  }
+  .app{max-width:440px; margin:0 auto; padding:22px 18px 44px; display:flex; flex-direction:column; gap:26px}
+
+  /* ---- header ---- */
+  .top{display:flex; justify-content:space-between; align-items:baseline; gap:12px}
+  .brand{font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:19px; letter-spacing:-.01em; margin:0}
+  .brand span{color:var(--accent)}
+  .date{margin:0; color:var(--muted); font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; text-align:right}
+
+  /* ---- challenge card (the one lifted object) ---- */
+  .card{position:relative; background:var(--surface); border-radius:24px; padding:24px 22px 22px; box-shadow:var(--shadow)}
+  .eyebrow{display:flex; justify-content:space-between; align-items:center; min-height:30px}
+  .chip{display:inline-flex; align-items:center; gap:7px; padding:5px 11px 5px 9px; border-radius:999px;
+        background:color-mix(in srgb,var(--cat) 14%,transparent); color:var(--cat); font-weight:600; font-size:13px; line-height:1.2}
+  .chip i{width:8px; height:8px; border-radius:50%; background:var(--cat)}
+  .swapped-tag{font-size:12px; color:var(--muted); font-weight:500}
+  .challenge{
+    font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:700; font-size:clamp(26px,7.2vw,31px);
+    line-height:1.16; letter-spacing:-.015em; margin:18px 0 14px; text-wrap:balance;
+  }
+  .why{margin:0 0 22px; color:var(--muted); font-size:15px; line-height:1.5}
+  .why b{display:block; font-family:"Figtree",sans-serif; font-weight:700; font-size:11px; letter-spacing:.1em; text-transform:uppercase; color:var(--accent); margin-bottom:2px}
+
+  .btn{appearance:none; border:0; cursor:pointer; font-family:inherit; border-radius:16px; transition:transform .12s ease, opacity .15s ease}
+  .btn:active{transform:scale(.98)}
+  .btn:focus-visible{outline:3px solid var(--focus); outline-offset:3px}
+  .btn-done{
+    width:100%; min-height:58px; background:var(--accent); color:var(--accent-ink);
+    font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:21px; letter-spacing:.01em;
+  }
+  .btn-done:hover{filter:brightness(1.05)}
+  .after{display:none; align-items:flex-start; justify-content:space-between; gap:14px; padding-top:4px}
+  .after p{margin:0; font-size:15px; line-height:1.45}
+  .after p strong{font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:700}
+  .btn-undo{background:none; color:var(--muted); font-size:13px; font-weight:600; padding:6px 0; text-decoration:underline; text-underline-offset:3px; flex:none; border-radius:6px}
+  .card.is-done .btn-done{display:none}
+  .card.is-done .after{display:flex}
+
+  .stamp{
+    position:absolute; top:14px; right:14px; padding:5px 12px 4px; border:3px solid var(--stamp); border-radius:8px;
+    color:var(--stamp); font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:24px; line-height:1.15;
+    letter-spacing:.14em; text-transform:uppercase; transform:rotate(-12deg); opacity:0; pointer-events:none;
+    mix-blend-mode:var(--stamp-blend);
+    box-shadow:inset 0 0 0 2px var(--surface), inset 0 0 0 3.5px var(--stamp);
+  }
+  .card.is-done .stamp{opacity:.92}
+  .card.is-done.just .stamp{animation:stamp-in .45s cubic-bezier(.2,1.5,.45,1) both}
+  .card.is-done.just{animation:thump .4s ease-out}
+  @keyframes stamp-in{
+    0%{transform:rotate(-20deg) scale(2.4); opacity:0}
+    55%{transform:rotate(-12deg) scale(.94); opacity:.95}
+    100%{transform:rotate(-12deg) scale(1); opacity:.92}
+  }
+  @keyframes thump{0%{transform:scale(1)} 45%{transform:scale(.985)} 100%{transform:scale(1)}}
+
+  /* ---- stats strip ---- */
+  .stats{display:grid; grid-template-columns:repeat(3,1fr); padding:2px 0}
+  .stat{display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 6px}
+  .stat + .stat{border-left:1px solid var(--line)}
+  .stat .v{display:inline-flex; align-items:center; gap:5px; font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:30px; line-height:1.1; font-variant-numeric:tabular-nums}
+  .stat .v svg{color:var(--gold); width:20px; height:20px; display:none}
+  .stat .v.hot svg{display:block}
+  .stat .l{font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
+
+  /* ---- sections ---- */
+  section{display:flex; flex-direction:column; gap:12px}
+  .sec-h{display:flex; justify-content:space-between; align-items:baseline}
+  h2{font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:700; font-size:17px; margin:0; letter-spacing:-.01em}
+  .sec-h small{color:var(--muted); font-size:13px; font-weight:500}
+
+  .grid{display:grid; grid-template-columns:repeat(7,1fr); gap:8px 6px}
+  .wd{text-align:center; font-size:11px; font-weight:600; letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+  .day{
+    aspect-ratio:1; border-radius:50%; display:grid; place-items:center; font-size:13px; font-weight:600;
+    font-variant-numeric:tabular-nums; color:var(--muted); background:var(--surface); border:1px solid var(--line);
+  }
+  .day.done{background:var(--accent); border-color:var(--accent); color:var(--accent-ink); font-weight:700}
+  .day.today{outline:2px solid var(--accent); outline-offset:2px; color:var(--ink)}
+  .day.today.done{color:var(--accent-ink)}
+
+  .actions{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+  .btn-sec{min-height:48px; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:600; font-size:15px; border-radius:14px}
+  .btn-sec:hover{border-color:var(--muted)}
+  .btn-sec[disabled]{opacity:.45; cursor:not-allowed}
+  .hint{margin:0; font-size:13px; color:var(--muted)}
+
+  .hist{list-style:none; margin:0; padding:0}
+  .hist li{display:grid; grid-template-columns:64px 1fr; gap:10px; padding:10px 0; border-top:1px solid var(--line); font-size:15px; line-height:1.4}
+  .hist li:first-child{border-top:0; padding-top:0}
+  .hist .d{color:var(--muted); font-size:13px; font-weight:600; font-variant-numeric:tabular-nums; padding-top:2px}
+  .empty{margin:0; color:var(--muted); font-size:14px}
+
+  .how{border-top:1px solid var(--line); padding-top:18px; color:var(--muted); font-size:14px; line-height:1.55}
+  .how p{margin:0 0 8px}
+  .how p:last-child{margin:0}
+  .how strong{color:var(--ink); font-weight:600}
+
+  .toast{
+    position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(8px); background:var(--ink); color:var(--ground);
+    padding:10px 16px; border-radius:999px; font-size:14px; font-weight:600; opacity:0; pointer-events:none; transition:opacity .2s, transform .2s; max-width:90vw; text-align:center;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+
+  .btn-fb{width:100%; min-height:48px; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:600; font-size:15px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none}
+  .btn-fb:hover{border-color:var(--muted)}
+  .btn-fb svg{width:18px; height:18px; color:var(--accent)}
+  .btn-install{width:100%; min-height:48px; background:var(--accent-soft); color:var(--accent); border:1px solid transparent; font-weight:700; font-size:15px; border-radius:14px}
+  .btn-install[hidden]{display:none}
+  .how a{color:var(--muted)}
+  .foot-links{display:flex; gap:14px; flex-wrap:wrap; margin-top:10px; font-size:13px}
+  body{padding-bottom:env(safe-area-inset-bottom)}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation:none !important; transition:none !important}
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <header class="top">
+    <h1 class="brand">Sfida del <span>giorno</span></h1>
+    <p class="date" id="date">—</p>
+  </header>
+
+  <article class="card" id="card">
+    <div class="stamp" aria-hidden="true">Fatto</div>
+    <div class="eyebrow">
+      <span class="chip" id="chip"><i></i><span id="chipName">—</span></span>
+      <span class="swapped-tag" id="swappedTag" hidden>sfida cambiata</span>
+    </div>
+    <p class="challenge" id="text">—</p>
+    <p class="why" id="why"><b>Perché</b><span id="whyText">—</span></p>
+    <button class="btn btn-done" id="btnDone" type="button">Fatto!</button>
+    <div class="after" id="after">
+      <p id="afterText"></p>
+      <button class="btn btn-undo" id="btnUndo" type="button">Annulla</button>
+    </div>
+  </article>
+
+  <div class="stats" aria-label="I tuoi numeri">
+    <div class="stat"><span class="v" id="vStreak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 4.2 5.2 6 5.2 11a5.2 5.2 0 0 1-10.4 0c0-2.1.9-3.7 2.2-5 .1 2 .9 3.2 2.1 3.4C11.2 8.6 10.6 5.4 12 2z" fill="currentColor"/></svg><span>0</span></span><span class="l">Serie</span></div>
+    <div class="stat"><span class="v" id="vBest">0</span><span class="l">Record</span></div>
+    <div class="stat"><span class="v" id="vTotal">0</span><span class="l">Completate</span></div>
+  </div>
+
+  <section>
+    <div class="sec-h"><h2>Ultime quattro settimane</h2><small id="gridRange"></small></div>
+    <div class="grid" id="grid" role="img" aria-label="Calendario degli ultimi 28 giorni"></div>
+  </section>
+
+  <section>
+    <div class="actions">
+      <button class="btn btn-sec" id="btnSwap" type="button">Cambia sfida</button>
+      <button class="btn btn-sec" id="btnShare" type="button">Condividi</button>
+    </div>
+    <p class="hint" id="swapHint">Puoi cambiare la sfida una volta al giorno.</p>
+    <a class="btn-fb" href="https://docs.google.com/forms/d/e/1FAIpQLSfcSHVdqzC_vUE8eYLzay0kJs-D1uarMKkdbdt2P8CVXwHz2A/viewform" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H7l-3 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
+      Dimmi cosa ne pensi
+    </a>
+    <button class="btn btn-install" id="btnInstall" type="button" hidden>Installa sul telefono</button>
+  </section>
+
+  <section>
+    <div class="sec-h"><h2>Sfide completate</h2><small id="histCount"></small></div>
+    <ul class="hist" id="hist"></ul>
+    <p class="empty" id="histEmpty">Il tuo primo timbro comparirà qui.</p>
+  </section>
+
+  <footer class="how">
+    <p><strong>Come funziona.</strong> Ogni giorno una sfida nuova, piccola e concreta. La fai, premi <strong>Fatto</strong> e metti un timbro. I giorni di fila formano la tua serie: salta un giorno e riparti da zero.</p>
+    <p><strong>Per averla come un'app:</strong> premi <strong>Installa sul telefono</strong> se compare, oppure apri il menu ⋮ di Chrome e scegli <strong>Installa app</strong> / <strong>Aggiungi a schermata Home</strong>.</p>
+    <p class="foot-links"><a href="./privacy.html">Privacy</a><span>Versione 1.0.0</span></p>
+  </footer>
+</main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+(function(){
+  'use strict';
+
+  // ---------- contenuti ----------
+  var CATS = [
+    {n:'Movimento', v:'--c0'}, {n:'Mente', v:'--c1'}, {n:'Relazioni', v:'--c2'}, {n:'Creatività', v:'--c3'},
+    {n:'Gentilezza', v:'--c4'}, {n:'Ordine', v:'--c5'}, {n:'Digital detox', v:'--c6'}
+  ];
+  var RAW = [
+    [ // Movimento
+      ['Fai una passeggiata di 15 minuti senza telefono.', 'Muoversi a passo tranquillo schiarisce la testa più di quanto sembri.'],
+      ['Sali le scale invece di prendere l’ascensore, tutto il giorno.', 'Piccoli sforzi ripetuti contano più di un allenamento saltato.'],
+      ['Fai 20 squat appena ti alzi dalla sedia.', 'Bastano due minuti per riattivare gambe e circolazione.'],
+      ['Fai 5 minuti di stretching prima di dormire.', 'Sciogliere i muscoli aiuta a dormire meglio.'],
+      ['Balla una canzone intera, da solo, a tutto volume.', 'Il movimento più efficace è quello che ti fa sorridere.'],
+      ['Ogni ora, alzati e cammina per 2 minuti.', 'Stare seduti a lungo pesa su schiena e concentrazione.'],
+      ['Fai una commissione a piedi o in bici invece che in auto.', 'Trasformi un obbligo in un po’ di movimento gratis.'],
+      ['Tieni la plank per 30 secondi, o quanto riesci.', 'Un core forte regge la postura per tutto il giorno.'],
+      ['Bevi un bicchiere d’acqua ogni volta che prendi in mano il telefono.', 'Ci si idrata poco e si guarda il telefono spesso: unisci le due cose.'],
+      ['Fai 10 flessioni, anche sulle ginocchia.', 'Non importa quante: importa averle fatte oggi.'],
+      ['Fai una passeggiata al tramonto.', 'La luce della sera aiuta a regolare il sonno.'],
+      ['Prova un esercizio che non hai mai fatto: cerca un video di 5 minuti.', 'La novità tiene svegli il corpo e la testa.']
+    ],
+    [ // Mente
+      ['Leggi 10 pagine di un libro.', 'Dieci pagine al giorno sono circa quindici libri all’anno.'],
+      ['Scrivi tre cose che oggi sono andate bene.', 'Allenare lo sguardo sul positivo cambia l’umore nel tempo.'],
+      ['Impara 5 parole in una lingua che ti incuriosisce.', 'Un vocabolario cresce solo così: cinque parole alla volta.'],
+      ['Stai 10 minuti in silenzio, senza schermi, a occhi chiusi.', 'Il cervello ha bisogno di pause vuote per riordinare.'],
+      ['Guarda un video di 15 minuti su un argomento che non conosci.', 'La curiosità si allena come un muscolo.'],
+      ['Scrivi a mano una pagina di pensieri, senza rileggere.', 'Mettere le cose su carta le rende meno pesanti.'],
+      ['Risolvi un cruciverba, un sudoku o un rompicapo.', 'Un piccolo enigma è una palestra per l’attenzione.'],
+      ['Scrivi 3 cose che vuoi imparare entro un anno.', 'Scriverle è il primo passo per iniziare davvero.'],
+      ['Ascolta un podcast su un tema lontano dal tuo lavoro.', 'Le idee migliori arrivano da campi diversi dal tuo.'],
+      ['Prima di dormire, trova una cosa che oggi hai imparato.', 'Chiudere il giorno con una domanda utile migliora la memoria.'],
+      ['Fai 5 minuti di respirazione lenta: 4 secondi dentro, 6 fuori.', 'Il respiro lento abbassa lo stress quasi subito.'],
+      ['Spiega a qualcuno, o a te stesso a voce alta, una cosa che sai fare bene.', 'Spiegare è il modo più veloce per capire davvero.']
+    ],
+    [ // Relazioni
+      ['Scrivi a un amico che non senti da mesi.', 'Le amicizie si mantengono con un messaggio, non con le intenzioni.'],
+      ['Chiama un genitore, un nonno o un parente e chiedigli come sta. Davvero.', 'Una telefonata di 5 minuti vale più di cento “poi lo chiamo”.'],
+      ['Fai un complimento sincero a una persona.', 'Le persone ricordano a lungo un complimento vero.'],
+      ['Cena senza telefono a tavola.', 'L’attenzione piena è il regalo più raro che puoi fare a chi ti è vicino.'],
+      ['Chiedi a qualcuno “com’è andata oggi?” e ascolta fino in fondo.', 'Ascoltare senza interrompere è più raro di quanto pensi.'],
+      ['Ringrazia una persona per una cosa specifica che ha fatto per te.', 'La gratitudine detta ad alta voce rafforza i legami.'],
+      ['Proponi a qualcuno di vedervi questa settimana e fissa il giorno.', 'I “dobbiamo vederci” senza una data non succedono mai.'],
+      ['Presentati a un vicino o a un collega con cui non hai mai parlato.', 'Ogni relazione è iniziata con un semplice “ciao”.'],
+      ['Racconta a qualcuno un bel ricordo che avete in comune.', 'Rievocare insieme fa bene a entrambi.'],
+      ['Manda una foto o una canzone a una persona a cui ti fa pensare.', 'Un piccolo gesto dice “ti ho pensato” meglio di mille parole.'],
+      ['Chiedi un consiglio a qualcuno che stimi.', 'Le persone amano sentirsi utili, e tu impari qualcosa.'],
+      ['Scusati per una cosa piccola che hai lasciato in sospeso.', 'Le piccole scuse evitano i grandi rancori.']
+    ],
+    [ // Creatività
+      ['Fai una foto a una cosa bella che di solito non noti.', 'Cercare la bellezza allena a vederla ovunque.'],
+      ['Disegna qualcosa per 10 minuti, anche male.', 'La creatività cresce con la pratica, non con il talento.'],
+      ['Scrivi una poesia di 4 versi sulla tua giornata.', 'Quattro righe bastano per guardare il giorno da un’altra angolazione.'],
+      ['Cucina una ricetta nuova, o cambia una che conosci.', 'La cucina è il laboratorio creativo più a portata di mano.'],
+      ['Inventa una storia di 5 frasi partendo dall’ultima cosa che hai visto.', 'Le idee arrivano quando le si obbliga a partire.'],
+      ['Ascolta un album intero di un genere che non ascolti mai.', 'L’orecchio si allarga solo ascoltando.'],
+      ['Riorganizza un angolo di casa in modo diverso.', 'Cambiare lo spazio cambia lo sguardo.'],
+      ['Scrivi 10 idee, qualsiasi, senza giudicarle.', 'La quantità libera la qualità.'],
+      ['Canticchia o fischietta una melodia inventata da te.', 'La musica è di tutti, anche di chi “non la sa fare”.'],
+      ['Fai un disegno o uno scarabocchio sul retro di uno scontrino.', 'Creare con quello che c’è è la forma più pura di creatività.'],
+      ['Guarda un’opera d’arte, anche online, per 5 minuti interi.', 'Guardare a lungo insegna a vedere davvero.'],
+      ['Scrivi una lettera a te stesso tra un anno.', 'Il te del futuro ti ringrazierà.']
+    ],
+    [ // Gentilezza
+      ['Lascia una recensione positiva a un negozio o un locale che ti è piaciuto.', 'Cinque minuti tuoi possono dare lavoro a qualcuno.'],
+      ['Tieni la porta, cedi il posto, lascia passare: un gesto gentile a uno sconosciuto.', 'La gentilezza è contagiosa: chi la riceve la passa avanti.'],
+      ['Offri un caffè a qualcuno.', 'Un caffè offerto è una piccola festa in un giorno normale.'],
+      ['Fai un lavoretto di casa che di solito tocca a un altro.', 'Alleggerire qualcuno senza che lo chieda vale doppio.'],
+      ['Dona qualcosa che non usi più.', 'Quello che a te ingombra, a qualcuno serve.'],
+      ['Scrivi un biglietto di ringraziamento a mano.', 'La carta si conserva, i messaggi si dimenticano.'],
+      ['Fai un complimento a chi ti serve al bar, al negozio o in ufficio.', 'Chi lavora con il pubblico riceve più lamentele che grazie.'],
+      ['Sorridi alle prime 3 persone che incontri.', 'Il sorriso arriva prima delle parole.'],
+      ['Aiuta qualcuno con una cosa che sai fare bene.', 'Le tue capacità valgono di più quando le condividi.'],
+      ['Perdona un piccolo torto e lascialo andare.', 'La gentilezza più difficile è quella verso chi ci ha infastidito.'],
+      ['Sii gentile con te stesso: concediti una pausa senza sensi di colpa.', 'Chi tratta bene sé stesso ha più energia per gli altri.'],
+      ['Lascia un messaggio gentile a chi vive o lavora con te: un post-it basta.', 'Un piccolo pensiero trovato per caso illumina la giornata.']
+    ],
+    [ // Ordine
+      ['Metti in ordine la scrivania o il piano della cucina.', 'Uno spazio libero fa spazio anche nella testa.'],
+      ['Cancella 20 foto o file inutili dal telefono.', 'Meno rumore digitale, più leggerezza.'],
+      ['Sistema una cosa rotta o storta che rimandi da settimane.', 'Le piccole cose in sospeso pesano più di quanto sembri.'],
+      ['Prepara stasera i vestiti e le cose per domani.', 'La mattina inizierà senza affanno.'],
+      ['Cancella 30 email vecchie o svuota la casella di oggi.', 'Una casella pulita è una preoccupazione in meno.'],
+      ['Butta o ricicla 5 oggetti che non usi.', 'Ogni oggetto in meno è una decisione in meno.'],
+      ['Scrivi le 3 cose più importanti da fare domani.', 'Decidere la sera libera la mente durante la notte.'],
+      ['Riordina un cassetto. Uno solo.', 'Un cassetto oggi, una casa in ordine tra un mese.'],
+      ['Cancella le app che non apri da più di un mese.', 'Un telefono leggero distrae di meno.'],
+      ['Rifai il letto appena sveglio.', 'Il primo compito completato della giornata trascina gli altri.'],
+      ['Controlla il calendario della settimana e sistema quello che manca.', 'Sapere cosa arriva riduce l’ansia di ciò che potrebbe arrivare.'],
+      ['Lava i piatti subito dopo mangiato.', 'Due minuti adesso valgono dieci domani.']
+    ],
+    [ // Digital detox
+      ['Niente telefono nella prima ora dopo il risveglio.', 'Inizi la giornata con le tue idee, non con quelle degli altri.'],
+      ['Silenzia le notifiche dei social per tutto il giorno.', 'Sei tu a decidere quando guardare, non l’app.'],
+      ['Lascia il telefono in un’altra stanza mentre mangi.', 'Un pasto senza schermo dura di più e sazia di più.'],
+      ['Un’ora di sera senza schermi: libro, musica, chiacchiere.', 'Gli occhi e il sonno ti ringrazieranno.'],
+      ['Cancella un’app che ti ruba tempo senza darti nulla.', 'Ogni app in meno sono minuti in più.'],
+      ['Non usare il telefono in bagno, oggi.', 'Un piccolo confine che ridà spazio ai pensieri.'],
+      ['Metti lo schermo del telefono in bianco e nero per un giorno.', 'Senza colori, le app perdono gran parte del loro richiamo.'],
+      ['Fai una cosa noiosa senza distrazioni: la coda, l’attesa, il tragitto.', 'La noia è il posto dove nascono le idee.'],
+      ['Stanotte ricarica il telefono fuori dalla camera da letto.', 'Il sonno migliora quando lo schermo non è a portata di mano.'],
+      ['Guarda quanto tempo hai passato sullo schermo ieri e scegli un limite per oggi.', 'Misurare è il primo passo per cambiare.'],
+      ['Chiama invece di scrivere, almeno una volta oggi.', 'La voce trasmette ciò che il testo perde.'],
+      ['Un pomeriggio senza social: solo messaggi diretti a persone reali.', 'Il feed può aspettare, le persone no.']
+    ]
+  ];
+  // Lista unica, a rotazione tra le categorie: la sfida n è della categoria n % 7
+  var CH = [];
+  for (var i = 0; i < 12; i++) for (var c = 0; c < 7; c++) CH.push({ id: c * 12 + i, c: c, t: RAW[c][i][0], w: RAW[c][i][1] });
+  var N = CH.length, STEP = 17; // 17 e 84 sono coprimi: 84 giorni senza ripetizioni, mai due giorni di fila la stessa categoria
+  var byId = {}; CH.forEach(function (x) { byId[x.id] = x; });
+
+  // ---------- date ----------
+  function key(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+  function dayIndex(d) { return Math.round(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()) / 864e5); }
+  function addDays(d, n) { var x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() + n); return x; }
+  function mainFor(d) { return CH[((dayIndex(d) * STEP) % N + N) % N]; }
+  function altFor(d) { return CH[(((dayIndex(d) * STEP) % N + N) % N + 1) % N]; }
+  function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
+  function fmtLong(d) { return cap(d.toLocaleDateString('it-IT', { weekday: 'long', day: 'numeric', month: 'long' })); }
+  function fmtShort(d) { return d.toLocaleDateString('it-IT', { day: 'numeric', month: 'short' }).replace('.', ''); }
+
+  // ---------- stato ----------
+  var KEY = 'sfida-del-giorno-v1';
+  var S = { done: {}, swapped: {}, best: 0 };
+  function load() { try { var r = localStorage.getItem(KEY); if (r) { var o = JSON.parse(r); S = { done: o.done || {}, swapped: o.swapped || {}, best: o.best || 0 }; } } catch (e) {} }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }
+
+  function currentFor(d) { var k = key(d); if (S.done[k] && byId[S.done[k].id]) return byId[S.done[k].id]; return S.swapped[k] ? altFor(d) : mainFor(d); }
+  function streak() {
+    var d = new Date(); var k = key(d); var n = 0;
+    if (!S.done[k]) { d = addDays(d, -1); k = key(d); }
+    while (S.done[k]) { n++; d = addDays(d, -1); k = key(d); }
+    return n;
+  }
+  function cheer(n) {
+    if (n >= 30) return 'Trenta giorni di fila. Ormai fa parte di te.';
+    if (n >= 14) return 'Due settimane di fila: la costanza è il tuo superpotere.';
+    if (n >= 7) return 'Una settimana intera, senza saltare un giorno.';
+    if (n >= 3) return n + ' giorni di fila: sta diventando un’abitudine.';
+    if (n === 2) return 'Due timbri di fila. Domani il terzo.';
+    return 'Primo timbro! Domani il secondo.';
+  }
+
+  // ---------- DOM ----------
+  var $ = function (id) { return document.getElementById(id); };
+  var el = {
+    date: $('date'), card: $('card'), chip: $('chip'), chipName: $('chipName'), swappedTag: $('swappedTag'),
+    text: $('text'), whyText: $('whyText'), btnDone: $('btnDone'), after: $('after'), afterText: $('afterText'), btnUndo: $('btnUndo'),
+    vStreak: $('vStreak'), vBest: $('vBest'), vTotal: $('vTotal'), grid: $('grid'), gridRange: $('gridRange'),
+    btnSwap: $('btnSwap'), btnShare: $('btnShare'), swapHint: $('swapHint'), hist: $('hist'), histEmpty: $('histEmpty'), histCount: $('histCount'), toast: $('toast')
+  };
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  var shownKey = null, toastTimer = null;
+  function toast(msg) { el.toast.textContent = msg; el.toast.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.toast.classList.remove('show'); }, 2200); }
+
+  function render(just) {
+    var today = new Date(), k = key(today), ch = currentFor(today), done = !!S.done[k];
+    shownKey = k;
+    el.date.textContent = fmtLong(today);
+    el.chip.style.setProperty('--cat', 'var(' + CATS[ch.c].v + ')');
+    el.chipName.textContent = CATS[ch.c].n;
+    el.swappedTag.hidden = !S.swapped[k];
+    el.text.textContent = ch.t;
+    el.whyText.textContent = ch.w;
+
+    var st = streak(), total = Object.keys(S.done).length;
+    if (st > S.best) { S.best = st; save(); }
+    el.card.classList.toggle('is-done', done);
+    el.card.classList.toggle('just', !!just);
+    if (done) el.afterText.innerHTML = '<strong>' + esc(cheer(st)) + '</strong> Torna domani per la prossima sfida.';
+
+    el.vStreak.querySelector('span').textContent = st;
+    el.vStreak.classList.toggle('hot', st > 0);
+    el.vBest.textContent = S.best;
+    el.vTotal.textContent = total;
+
+    // griglia: ultimi 28 giorni, oggi in fondo
+    var start = addDays(today, -27), html = '';
+    for (var i = 0; i < 7; i++) html += '<div class="wd">' + esc(addDays(start, i).toLocaleDateString('it-IT', { weekday: 'narrow' })) + '</div>';
+    for (var j = 0; j < 28; j++) {
+      var d = addDays(start, j), dk = key(d), cls = 'day' + (S.done[dk] ? ' done' : '') + (dk === k ? ' today' : '');
+      html += '<div class="' + cls + '" title="' + esc(fmtLong(d)) + '">' + d.getDate() + '</div>';
+    }
+    el.grid.innerHTML = html;
+    el.gridRange.textContent = fmtShort(start) + ' – ' + fmtShort(today);
+
+    // cambio sfida
+    var canSwap = !done && !S.swapped[k];
+    el.btnSwap.disabled = !canSwap;
+    el.swapHint.textContent = done ? 'Sfida completata: domani ne arriva una nuova.' : (S.swapped[k] ? 'Sfida cambiata. Domani ne arriva una nuova.' : 'Puoi cambiare la sfida una volta al giorno.');
+
+    // storico
+    var keys = Object.keys(S.done).sort().reverse().slice(0, 8), h = '';
+    keys.forEach(function (dk) { var it = byId[S.done[dk].id]; if (!it) return; var p = dk.split('-'); var dd = new Date(+p[0], +p[1] - 1, +p[2]); h += '<li><span class="d">' + esc(fmtShort(dd)) + '</span><span>' + esc(it.t) + '</span></li>'; });
+    el.hist.innerHTML = h;
+    el.histEmpty.hidden = keys.length > 0;
+    el.histCount.textContent = total > 0 ? (total === 1 ? '1 timbro' : total + ' timbri') : '';
+  }
+
+  // ---------- azioni ----------
+  el.btnDone.addEventListener('click', function () {
+    var today = new Date(), k = key(today), ch = currentFor(today);
+    S.done[k] = { id: ch.id, ts: Date.now() }; save();
+    if (navigator.vibrate) { try { navigator.vibrate([18, 40, 28]); } catch (e) {} }
+    render(true);
+  });
+  el.btnUndo.addEventListener('click', function () {
+    var k = key(new Date()); delete S.done[k]; save(); render(false);
+  });
+  el.btnSwap.addEventListener('click', function () {
+    var k = key(new Date()); if (S.done[k] || S.swapped[k]) return;
+    S.swapped[k] = true; save(); render(false);
+  });
+  el.btnShare.addEventListener('click', function () {
+    var today = new Date(), ch = currentFor(today), done = !!S.done[key(today)], st = streak();
+    var text = done
+      ? 'Sfida del giorno: «' + ch.t + '» — fatta! Serie: ' + st + (st === 1 ? ' giorno.' : ' giorni.')
+      : 'La mia sfida di oggi: «' + ch.t + '». Ci provi anche tu?';
+    if (navigator.share) {
+      navigator.share({ title: 'Sfida del giorno', text: text }).catch(function () {});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(function () { toast('Testo copiato: incollalo dove vuoi'); }, function () { toast('Non riesco a copiare su questo dispositivo'); });
+    } else { toast('Condivisione non disponibile qui'); }
+  });
+
+  // cambio giorno mentre la pagina resta aperta
+  setInterval(function () { if (key(new Date()) !== shownKey) render(false); }, 30000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden && key(new Date()) !== shownKey) render(false); });
+
+  load();
+  render(false);
+
+  // ---------- installazione (Android/Chrome) ----------
+  var deferredPrompt = null, btnInstall = $('btnInstall');
+  var standalone = window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); deferredPrompt = e;
+    if (!standalone) btnInstall.hidden = false;
+  });
+  btnInstall.addEventListener('click', function () {
+    if (!deferredPrompt) return;
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(function () { deferredPrompt = null; btnInstall.hidden = true; });
+  });
+  window.addEventListener('appinstalled', function () { btnInstall.hidden = true; toast('App installata'); });
+
+  // ---------- funziona anche offline ----------
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', function () { navigator.serviceWorker.register('./sw.js').catch(function () {}); });
+  }
+})();
+</script>
+</body>
+</html>
