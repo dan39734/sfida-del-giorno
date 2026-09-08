@@ -46,12 +46,22 @@ jobs:
             if [ -z "${!v}" ]; then echo "::error::Manca il secret $v"; exit 1; fi
           done
           set -o pipefail
-          printf '%s' "$KEYSTORE_BASE64" | grep -v -- '-----' | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/upload.keystore"
-          echo "Keystore decodificato: $(stat -c %s "$RUNNER_TEMP/upload.keystore") byte (atteso: qualche migliaio)"
-          echo "--- Contenuto del keystore con la password dello store (keytool -list) ---"
-          keytool -list -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" 2>&1 || true
-          echo "--- Controllo dell'alias (l'impronta SHA-256 deve essere quella registrata su Play) ---"
-          keytool -list -v -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" 2>&1 | grep -E 'Alias|SHA256|Valid|error|Exception|does not exist|incorrect'
+          KS="$RUNNER_TEMP/upload.keystore"
+          printf '%s' "$KEYSTORE_BASE64" | grep -v -- '-----' | tr -d '\r\n ' | base64 -d > "$KS"
+          echo "Keystore decodificato: $(stat -c %s "$KS") byte (atteso: qualche migliaio)"
+          trim() { printf '%s' "$1" | tr -d '\r\n' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'; }
+          STOREPASS=""
+          for n in KEYSTORE_PASSWORD KEY_PASSWORD; do
+            c="$(trim "${!n}")"
+            if keytool -list -keystore "$KS" -storepass "$c" > /dev/null 2>&1; then STOREPASS="$c"; echo "Password dello store: OK (dal secret $n)"; break; fi
+          done
+          if [ -z "$STOREPASS" ]; then
+            echo "::error::Nessuna delle password apre il keystore: nel secret KEYSTORE_PASSWORD va il valore della riga «Key store password» di signing-key-info.txt (senza spazi in più)"
+            exit 1
+          fi
+          ALIAS="$(trim "$KEY_ALIAS")"
+          echo "--- Chiave «$ALIAS» (l'impronta SHA-256 deve essere quella registrata su Play) ---"
+          keytool -list -v -keystore "$KS" -storepass "$STOREPASS" -alias "$ALIAS" 2>&1 | grep -E 'Alias|SHA256|Valid|error|Exception|does not exist'
 
       - name: Prepara il progetto Capacitor
         run: |
@@ -121,8 +131,21 @@ jobs:
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
           set -e
+          KS="$RUNNER_TEMP/upload.keystore"
+          trim() { printf '%s' "$1" | tr -d '\r\n' | sed -E 's/^[[:space:]]+//; s/[[:space:]]+$//'; }
+          STOREPASS=""
+          for n in KEYSTORE_PASSWORD KEY_PASSWORD; do
+            c="$(trim "${!n}")"
+            if keytool -list -keystore "$KS" -storepass "$c" > /dev/null 2>&1; then STOREPASS="$c"; break; fi
+          done
+          [ -n "$STOREPASS" ] || { echo "::error::Password dello store non valida"; exit 1; }
+          ALIAS="$(trim "$KEY_ALIAS")"
           AAB=android/app/build/outputs/bundle/release/app-release.aab
-          jarsigner -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" -sigalg SHA256withRSA -digestalg SHA-256 "$AAB" "$KEY_ALIAS"
+          ok=0
+          for kp in "$(trim "$KEY_PASSWORD")" "$STOREPASS"; do
+            if jarsigner -keystore "$KS" -storepass "$STOREPASS" -keypass "$kp" -sigalg SHA256withRSA -digestalg SHA-256 "$AAB" "$ALIAS"; then ok=1; break; fi
+          done
+          [ "$ok" = 1 ] || { echo "::error::Firma fallita: controlla KEY_ALIAS e KEY_PASSWORD"; exit 1; }
           jarsigner -verify "$AAB"
           mkdir -p out
           cp "$AAB" "out/sfida-${{ inputs.version_name }}-${{ inputs.version_code }}.aab"
