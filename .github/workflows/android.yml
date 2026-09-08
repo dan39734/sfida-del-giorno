@@ -1,0 +1,139 @@
+# Costruisce il pacchetto Android di Sfida (app WebView con Capacitor) e lo firma
+# con la chiave di upload di Google Play. Si avvia a mano: Actions → Android → Run workflow.
+# Serve che nel repository esistano 4 secret: KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD.
+
+name: Android
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_name:
+        description: "Versione mostrata agli utenti (es. 1.1.1)"
+        required: true
+        default: "1.1.1"
+      version_code:
+        description: "Numero di build: intero, sempre più alto dell'ultimo caricato su Play"
+        required: true
+        default: "2"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Controlla la chiave di firma (prima di tutto, per fallire subito se manca)
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -e
+          for v in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then echo "::error::Manca il secret $v"; exit 1; fi
+          done
+          printf '%s' "$KEYSTORE_BASE64" | grep -v -- '-----' | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/upload.keystore"
+          echo "Chiave trovata nel keystore (l'impronta SHA-256 deve essere quella registrata su Play):"
+          keytool -list -v -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" | grep -E 'Alias|SHA256|Valid'
+
+      - name: Prepara il progetto Capacitor
+        run: |
+          set -e
+          npm init -y > /dev/null
+          npm install @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8
+          rm -rf www && mkdir www
+          cp index.html manifest.json privacy.html icon-192.png icon-512.png www/
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "io.github.dan39734.sfidadelgiorno",
+            "appName": "Sfida",
+            "webDir": "www",
+            "backgroundColor": "#F2F0F9"
+          }
+          EOF
+          npx cap add android
+          npx cap sync android
+
+      - name: Versione e SDK
+        run: |
+          set -e
+          G=android/app/build.gradle
+          sed -i -E 's/versionCode[ =]+[0-9]+/versionCode = ${{ inputs.version_code }}/' "$G"
+          sed -i -E 's/versionName[ =]+"[^"]*"/versionName = "${{ inputs.version_name }}"/' "$G"
+          grep -E 'versionCode|versionName|applicationId|namespace' "$G"
+          sed -i -E 's/(compileSdkVersion[ =]+)[0-9]+/\136/; s/(targetSdkVersion[ =]+)[0-9]+/\136/' android/variables.gradle
+          grep -E 'SdkVersion' android/variables.gradle
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" > /dev/null 2>&1 || true
+
+      - name: Icone e schermata di avvio (dall'icona del sito)
+        run: |
+          set -e
+          RES=android/app/src/main/res
+          # solo il segno di spunta bianco, sfondo trasparente (per l'icona adattiva): la luminosità fa da trasparenza
+          convert icon-512.png -colorspace gray -level 55%,100% "$RUNNER_TEMP/mask.png"
+          convert -size 512x512 xc:white "$RUNNER_TEMP/mask.png" -alpha off -compose copy_opacity -composite "$RUNNER_TEMP/check.png"
+          for d in mdpi:48 hdpi:72 xhdpi:96 xxhdpi:144 xxxhdpi:192; do
+            dpi=${d%%:*}; px=${d##*:}; fg=$((px * 108 / 48)); ck=$((fg * 80 / 108)); r=$((px / 2))
+            mkdir -p "$RES/mipmap-$dpi"
+            convert icon-512.png -resize ${px}x${px} "$RES/mipmap-$dpi/ic_launcher.png"
+            convert icon-512.png -resize ${px}x${px} \( -size ${px}x${px} xc:black -fill white -draw "circle $r,$r $r,0" \) -alpha off -compose copy_opacity -composite "$RES/mipmap-$dpi/ic_launcher_round.png"
+            convert -size ${fg}x${fg} xc:none \( "$RUNNER_TEMP/check.png" -resize ${ck}x${ck} \) -gravity center -composite "$RES/mipmap-$dpi/ic_launcher_foreground.png"
+          done
+          mkdir -p "$RES/values"
+          printf '<?xml version="1.0" encoding="utf-8"?>\n<resources>\n    <color name="ic_launcher_background">#F0482B</color>\n</resources>\n' > "$RES/values/ic_launcher_background.xml"
+          # schermata di avvio: sfondo chiaro dell'app con l'icona al centro (al posto del logo Capacitor)
+          for f in $(find "$RES" -name 'splash.png'); do
+            sz=$(identify -format '%wx%h' "$f"); w=${sz%x*}; h=${sz#*x}; m=$(( w < h ? w : h )); ic=$((m / 5))
+            convert -size "$sz" xc:'#F2F0F9' \( icon-512.png -resize ${ic}x${ic} \) -gravity center -composite "$f"
+          done
+          ls "$RES/mipmap-xxxhdpi"
+
+      - name: Compila (AAB per Play + APK di prova)
+        run: |
+          set -e
+          cd android
+          chmod +x gradlew
+          ./gradlew bundleRelease assembleDebug --no-daemon --stacktrace
+          ls -la app/build/outputs/bundle/release/ app/build/outputs/apk/debug/
+
+      - name: Firma l'AAB con la chiave di upload
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -e
+          AAB=android/app/build/outputs/bundle/release/app-release.aab
+          jarsigner -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" -keypass "$KEY_PASSWORD" -sigalg SHA256withRSA -digestalg SHA-256 "$AAB" "$KEY_ALIAS"
+          jarsigner -verify "$AAB"
+          mkdir -p out
+          cp "$AAB" "out/sfida-${{ inputs.version_name }}-${{ inputs.version_code }}.aab"
+          cp android/app/build/outputs/apk/debug/app-debug.apk "out/sfida-${{ inputs.version_name }}-${{ inputs.version_code }}-debug.apk"
+          rm -f "$RUNNER_TEMP/upload.keystore"
+          ls -la out
+
+      - name: Pacchetto per Google Play (AAB firmato)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sfida-aab
+          path: out/*.aab
+
+      - name: APK di prova (solo per installarlo a mano sul telefono)
+        uses: actions/upload-artifact@v4
+        with:
+          name: sfida-apk-debug
+          path: out/*-debug.apk
