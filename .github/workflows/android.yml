@@ -45,9 +45,13 @@ jobs:
           for v in KEYSTORE_BASE64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
             if [ -z "${!v}" ]; then echo "::error::Manca il secret $v"; exit 1; fi
           done
+          set -o pipefail
           printf '%s' "$KEYSTORE_BASE64" | grep -v -- '-----' | tr -d '\r\n ' | base64 -d > "$RUNNER_TEMP/upload.keystore"
-          echo "Chiave trovata nel keystore (l'impronta SHA-256 deve essere quella registrata su Play):"
-          keytool -list -v -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" | grep -E 'Alias|SHA256|Valid'
+          echo "Keystore decodificato: $(stat -c %s "$RUNNER_TEMP/upload.keystore") byte (atteso: qualche migliaio)"
+          echo "--- Contenuto del keystore con la password dello store (keytool -list) ---"
+          keytool -list -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" 2>&1 || true
+          echo "--- Controllo dell'alias (l'impronta SHA-256 deve essere quella registrata su Play) ---"
+          keytool -list -v -keystore "$RUNNER_TEMP/upload.keystore" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" 2>&1 | grep -E 'Alias|SHA256|Valid|error|Exception|does not exist|incorrect'
 
       - name: Prepara il progetto Capacitor
         run: |
