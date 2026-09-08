@@ -96,6 +96,7 @@ jobs:
       - name: Icone e schermata di avvio (dall'icona del sito)
         run: |
           set -e
+          sudo apt-get update -qq > /dev/null && sudo apt-get install -y -qq imagemagick > /dev/null
           RES=android/app/src/main/res
           # solo il segno di spunta bianco, sfondo trasparente (per l'icona adattiva): la luminosità fa da trasparenza
           convert icon-512.png -colorspace gray -level 55%,100% "$RUNNER_TEMP/mask.png"
