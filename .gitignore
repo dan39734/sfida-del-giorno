@@ -1,0 +1,17 @@
+# Note e piani personali: restano sul PC, non vanno su GitHub (repository pubblico)
+docs-privati/
+CLAUDE.local.md
+
+# Chiavi di firma: mai nel repository
+*.keystore
+*.jks
+signing-key-info.txt
+
+# File generati da una build Android locale (il workflow li ricrea da solo)
+node_modules/
+www/
+android/
+capacitor.config.json
+package.json
+package-lock.json
+out/
