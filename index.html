@@ -62,9 +62,9 @@
 
   /* ---- header ---- */
   .top{display:flex; justify-content:space-between; align-items:baseline; gap:12px}
-  .brand{font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:19px; letter-spacing:-.01em; margin:0}
+  .brand{font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:19px; letter-spacing:-.01em; margin:0; white-space:nowrap}
   .brand span{color:var(--accent)}
-  .date{margin:0; color:var(--muted); font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; text-align:right}
+  .date{margin:0; color:var(--muted); font-size:14px; font-weight:500; font-variant-numeric:tabular-nums; text-align:right; white-space:nowrap}
 
   /* ---- challenge card (the one lifted object) ---- */
   .card{position:relative; background:var(--surface); border-radius:24px; padding:24px 22px 22px; box-shadow:var(--shadow)}
@@ -121,6 +121,24 @@
   .stat .v.hot svg{display:block}
   .stat .l{font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
 
+  /* ---- traguardi / milestones (7, 30, 100 giorni di fila) ---- */
+  .badges{display:grid; grid-template-columns:repeat(3,1fr); gap:8px}
+  .badge{display:flex; flex-direction:column; align-items:center; gap:8px}
+  .medal{
+    position:relative; width:60px; height:60px; border-radius:50%; display:grid; place-items:center;
+    font-family:"Bricolage Grotesque","Figtree",sans-serif; font-weight:800; font-size:21px; letter-spacing:-.02em; font-variant-numeric:tabular-nums;
+    color:var(--muted); border:2px dashed var(--line); background:transparent;
+  }
+  .medal svg{position:absolute; top:-5px; right:-5px; width:22px; height:22px; display:none; color:var(--accent); filter:drop-shadow(0 1px 1px rgba(0,0,0,.15))}
+  .badge.on .medal{color:#2B1D00; border:0; background:var(--gold); box-shadow:inset 0 0 0 3px rgba(255,255,255,.45), 0 10px 20px -12px rgba(120,80,0,.7)}
+  .badge.on .medal svg{display:block}
+  .badge .bl{font-size:11.5px; font-weight:600; letter-spacing:.09em; text-transform:uppercase; color:var(--muted)}
+  .badge.on .bl{color:var(--ink)}
+  .badge.new .medal{animation:pop .6s cubic-bezier(.2,1.5,.45,1) both}
+  @keyframes pop{0%{transform:scale(.5); opacity:0} 60%{transform:scale(1.14); opacity:1} 100%{transform:scale(1)}}
+  .ms-bar{height:6px; border-radius:999px; background:var(--line); overflow:hidden}
+  .ms-bar i{display:block; height:100%; width:0; border-radius:999px; background:var(--accent); transition:width .5s ease}
+
   /* ---- sections ---- */
   section{display:flex; flex-direction:column; gap:12px}
   .sec-h{display:flex; justify-content:space-between; align-items:baseline}
@@ -145,6 +163,7 @@
   .btn-fb{width:100%; min-height:48px; background:var(--surface); color:var(--ink); border:1px solid var(--line); font-weight:600; font-size:15px; border-radius:14px; display:flex; align-items:center; justify-content:center; gap:8px; text-decoration:none}
   .btn-fb:hover{border-color:var(--muted)}
   .btn-fb svg{width:18px; height:18px; color:var(--accent)}
+  .btn-fb.rate svg{color:var(--gold)}
   .btn-install{width:100%; min-height:48px; background:var(--accent-soft); color:var(--accent); border:1px solid transparent; font-weight:700; font-size:15px; border-radius:14px}
   .btn-install[hidden]{display:none}
 
@@ -204,6 +223,13 @@
     <div class="stat"><span class="v" id="vTotal">0</span><span class="l" id="lTotal">Completed</span></div>
   </div>
 
+  <section aria-labelledby="msTitle">
+    <div class="sec-h"><h2 id="msTitle">Milestones</h2><small id="msCount"></small></div>
+    <div class="badges" id="badges"></div>
+    <div class="ms-bar" aria-hidden="true"><i id="msBar"></i></div>
+    <p class="hint" id="msText"></p>
+  </section>
+
   <section>
     <div class="sec-h"><h2 id="gridTitle">Last four weeks</h2><small id="gridRange"></small></div>
     <div class="grid" id="grid" role="img" aria-label="Calendar of the last 28 days"></div>
@@ -218,6 +244,10 @@
     <a class="btn-fb" id="fbLink" href="https://docs.google.com/forms/d/e/1FAIpQLSfjzkM29bBd3FIvBhrWn5CHXqtM18ULzo8fRB4kmLtC5BtmvQ/viewform" target="_blank" rel="noopener">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h16v12H7l-3 3z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></svg>
       <span id="fbText">Tell me what you think</span>
+    </a>
+    <a class="btn-fb rate" id="rateLink" href="https://play.google.com/store/apps/details?id=io.github.dan39734.sfidadelgiorno" target="_blank" rel="noopener">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l2.85 5.78 6.38.93-4.62 4.5 1.09 6.35L12 17.36l-5.7 3 1.09-6.35-4.62-4.5 6.38-.93z" fill="currentColor"/></svg>
+      <span id="rateText">Rate Sfida on Google Play</span>
     </a>
     <button class="btn btn-install" id="btnInstall" type="button" hidden>Install on your phone</button>
   </section>
@@ -239,7 +269,7 @@
 <script>
 (function(){
   'use strict';
-  var VERSION = '1.1.1';
+  var VERSION = '1.2.0';
 
   // ---------- lingua / language ----------
   // Italiano se il telefono è in italiano, inglese per tutti gli altri; il pulsante in fondo permette di cambiare.
@@ -263,12 +293,14 @@
       stamp: 'Fatto', swapped: 'sfida cambiata', why: 'Perché', done: 'Fatto!', undo: 'Annulla',
       afterTail: ' Torna domani per la prossima sfida.',
       statsAria: 'I tuoi numeri', streak: 'Serie', best: 'Record', total: 'Completate',
+      msTitle: 'Traguardi', msDays: ' giorni', msOf: ' di 3', msOn: 'sbloccato', msOff: 'da sbloccare',
+      msAll: 'Tutti i badge sono tuoi. Continua così.', msOne: 'Ancora un giorno di fila e sblocchi il prossimo badge.', msMore1: 'Ancora ', msMore2: ' giorni di fila per il prossimo badge.',
       gridTitle: 'Ultime quattro settimane', gridAria: 'Calendario degli ultimi 28 giorni',
       swap: 'Cambia sfida', share: 'Condividi',
       hint: 'Puoi cambiare la sfida una volta al giorno.',
       hintDone: 'Sfida completata: domani ne arriva una nuova.',
       hintSwapped: 'Sfida cambiata. Domani ne arriva una nuova.',
-      feedback: 'Dimmi cosa ne pensi', install: 'Installa sul telefono',
+      feedback: 'Dimmi cosa ne pensi', rate: 'Valuta Sfida su Google Play', install: 'Installa sul telefono',
       histTitle: 'Sfide completate', histEmpty: 'Il tuo primo timbro comparirà qui.',
       stamp1: '1 timbro', stampN: ' timbri',
       how: '<strong>Come funziona.</strong> Ogni giorno una sfida nuova, piccola e concreta. La fai, premi <strong>Fatto</strong> e metti un timbro. I giorni di fila formano la tua serie: salta un giorno e riparti da zero.',
@@ -286,12 +318,14 @@
       stamp: 'Done', swapped: 'challenge swapped', why: 'Why', done: 'Done!', undo: 'Undo',
       afterTail: ' Come back tomorrow for the next one.',
       statsAria: 'Your numbers', streak: 'Streak', best: 'Best', total: 'Completed',
+      msTitle: 'Milestones', msDays: ' days', msOf: ' of 3', msOn: 'unlocked', msOff: 'locked',
+      msAll: 'All badges earned. Keep it up.', msOne: 'One more day in a row and you unlock the next badge.', msMore1: '', msMore2: ' more days in a row to the next badge.',
       gridTitle: 'Last four weeks', gridAria: 'Calendar of the last 28 days',
       swap: 'Swap challenge', share: 'Share',
       hint: 'You can swap the challenge once a day.',
       hintDone: 'Challenge done: a new one arrives tomorrow.',
       hintSwapped: 'Challenge swapped. A new one arrives tomorrow.',
-      feedback: 'Tell me what you think', install: 'Install on your phone',
+      feedback: 'Tell me what you think', rate: 'Rate Sfida on Google Play', install: 'Install on your phone',
       histTitle: 'Completed challenges', histEmpty: 'Your first stamp will show up here.',
       stamp1: '1 stamp', stampN: ' stamps',
       how: '<strong>How it works.</strong> Every day, one new challenge: small and concrete. You do it, press <strong>Done</strong> and get a stamp. Days in a row build your streak: skip a day and you start over.',
@@ -530,6 +564,8 @@
   function cap(s) { return s.charAt(0).toUpperCase() + s.slice(1); }
   function fmtLong(d) { return cap(d.toLocaleDateString(locale(), { weekday: 'long', day: 'numeric', month: 'long' })); }
   function fmtShort(d) { return d.toLocaleDateString(locale(), { day: 'numeric', month: 'short' }).replace('.', ''); }
+  // Intestazione: data breve («Lun 7 set», «Mon, Sep 7») così sta su una riga anche sugli schermi stretti / short date for the header
+  function fmtHead(d) { return cap(d.toLocaleDateString(locale(), { weekday: 'short', day: 'numeric', month: 'short' }).replace(/\./g, '')); }
 
   // ---------- stato / state ----------
   var KEY = 'sfida-del-giorno-v1';
@@ -544,8 +580,20 @@
     while (S.done[k]) { n++; d = addDays(d, -1); k = key(d); }
     return n;
   }
+  // Traguardi / milestones: badge per 7, 30 e 100 giorni di fila (si sbloccano con il record, quindi restano per sempre)
+  var MILESTONES = [7, 30, 100];
+  function badgeText(st, earned) {
+    var next = MILESTONES[earned];
+    if (!next) return t('msAll');
+    var r = Math.max(1, next - st);
+    return r === 1 ? t('msOne') : t('msMore1') + r + t('msMore2');
+  }
   function cheer(n) {
     if (LANG === 'it') {
+      if (n === 100) return 'Traguardo sbloccato: 100 giorni di fila. Sei nella leggenda.';
+      if (n === 30) return 'Traguardo sbloccato: 30 giorni di fila. Secondo badge conquistato.';
+      if (n === 7) return 'Traguardo sbloccato: 7 giorni di fila. Il primo badge è tuo.';
+      if (n >= 100) return 'Più di cento giorni di fila. Leggendario.';
       if (n >= 30) return 'Trenta giorni di fila. Ormai fa parte di te.';
       if (n >= 14) return 'Due settimane di fila: la costanza è il tuo superpotere.';
       if (n >= 7) return 'Una settimana intera, senza saltare un giorno.';
@@ -553,6 +601,10 @@
       if (n === 2) return 'Due timbri di fila. Domani il terzo.';
       return 'Primo timbro! Domani il secondo.';
     }
+    if (n === 100) return 'Milestone unlocked: 100 days in a row. You’re a legend.';
+    if (n === 30) return 'Milestone unlocked: 30 days in a row. Second badge earned.';
+    if (n === 7) return 'Milestone unlocked: 7 days in a row. Your first badge.';
+    if (n >= 100) return 'Over a hundred days in a row. Legendary.';
     if (n >= 30) return 'Thirty days in a row. It’s part of you now.';
     if (n >= 14) return 'Two weeks straight: consistency is your superpower.';
     if (n >= 7) return 'A whole week without missing a day.';
@@ -567,8 +619,9 @@
     brand: $('brand'), date: $('date'), card: $('card'), stamp: $('stamp'), chip: $('chip'), chipName: $('chipName'), swappedTag: $('swappedTag'),
     text: $('text'), whyLabel: $('whyLabel'), whyText: $('whyText'), btnDone: $('btnDone'), after: $('after'), afterText: $('afterText'), btnUndo: $('btnUndo'),
     stats: $('stats'), vStreak: $('vStreak'), vBest: $('vBest'), vTotal: $('vTotal'), lStreak: $('lStreak'), lBest: $('lBest'), lTotal: $('lTotal'),
+    msTitle: $('msTitle'), msCount: $('msCount'), badges: $('badges'), msBar: $('msBar'), msText: $('msText'),
     gridTitle: $('gridTitle'), grid: $('grid'), gridRange: $('gridRange'),
-    btnSwap: $('btnSwap'), btnShare: $('btnShare'), swapHint: $('swapHint'), fbText: $('fbText'), btnInstall: $('btnInstall'),
+    btnSwap: $('btnSwap'), btnShare: $('btnShare'), swapHint: $('swapHint'), fbText: $('fbText'), rateText: $('rateText'), btnInstall: $('btnInstall'),
     histTitle: $('histTitle'), hist: $('hist'), histEmpty: $('histEmpty'), histCount: $('histCount'),
     howText: $('howText'), installText: $('installText'), versionText: $('versionText'), btnLang: $('btnLang'), toast: $('toast')
   };
@@ -588,11 +641,13 @@
     el.btnUndo.textContent = t('undo');
     el.stats.setAttribute('aria-label', t('statsAria'));
     el.lStreak.textContent = t('streak'); el.lBest.textContent = t('best'); el.lTotal.textContent = t('total');
+    el.msTitle.textContent = t('msTitle');
     el.gridTitle.textContent = t('gridTitle');
     el.grid.setAttribute('aria-label', t('gridAria'));
     el.btnSwap.textContent = t('swap');
     el.btnShare.textContent = t('share');
     el.fbText.textContent = t('feedback');
+    el.rateText.textContent = t('rate');
     el.btnInstall.textContent = t('install');
     el.histTitle.textContent = t('histTitle');
     el.histEmpty.textContent = t('histEmpty');
@@ -606,7 +661,8 @@
   function render(just) {
     var today = new Date(), k = key(today), ch = currentFor(today), done = !!S.done[k];
     shownKey = k;
-    el.date.textContent = fmtLong(today);
+    el.date.textContent = fmtHead(today);
+    el.date.title = fmtLong(today);
     el.chip.style.setProperty('--cat', 'var(' + CATS[ch.c].v + ')');
     el.chipName.textContent = CATS[ch.c][LANG];
     el.swappedTag.hidden = !S.swapped[k];
@@ -623,6 +679,21 @@
     el.vStreak.classList.toggle('hot', st > 0);
     el.vBest.textContent = S.best;
     el.vTotal.textContent = total;
+
+    // traguardi / milestones
+    var earned = 0, bh = '';
+    for (var m = 0; m < MILESTONES.length; m++) {
+      var ms = MILESTONES[m], on = S.best >= ms;
+      if (on) earned++;
+      bh += '<div class="badge' + (on ? ' on' : '') + (just && st === ms ? ' new' : '') + '" role="img" aria-label="' + ms + t('msDays') + ': ' + (on ? t('msOn') : t('msOff')) + '">' +
+        '<div class="medal"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="currentColor"/><path d="M7 12.5l3.2 3.2L17 9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span>' + ms + '</span></div>' +
+        '<span class="bl">' + ms + t('msDays') + '</span></div>';
+    }
+    el.badges.innerHTML = bh;
+    el.msCount.textContent = earned ? earned + t('msOf') : '';
+    var next = MILESTONES[earned];
+    el.msBar.style.width = next ? Math.min(100, Math.round(st / next * 100)) + '%' : '100%';
+    el.msText.textContent = badgeText(st, earned);
 
     // griglia: ultimi 28 giorni, oggi in fondo / grid: last 28 days, today last
     var start = addDays(today, -27), html = '';
