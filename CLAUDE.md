@@ -14,7 +14,7 @@ e impacchettata come app Android (WebView con Capacitor) per Google Play, pacche
 ## Regole
 - Ogni modifica all'app: alzare `VERSION` in `index.html` e la versione nel nome della cache in `sw.js` (devono coincidere), altrimenti i telefoni non ricevono l'aggiornamento.
 - Il sito si aggiorna da solo a ogni push su `main` (GitHub Pages, 1–2 minuti).
-- Pacchetto Android: su GitHub → Actions → «Android» → Run workflow, con `version_name` (es. `1.1.2`) e `version_code` intero sempre più alto dell'ultimo caricato su Play (ultimo: 2 = 1.1.1, 8 set 2026). Non cambiare mai `appId`.
+- Pacchetto Android: su GitHub → Actions → «Android» → Run workflow, con `version_name` (es. `1.1.2`) e `version_code` intero sempre più alto dell'ultimo caricato su Play (ultimo costruito: 3 = 1.2.0 (2 ott 2026); prossimo: 4). Non cambiare mai `appId`.
 - La chiave di firma sta nei 4 secret del repository (KEYSTORE_BASE64, KEYSTORE_PASSWORD, KEY_ALIAS, KEY_PASSWORD) e nei backup di Dan: mai copiarla nel repository, mai rigenerarla.
 - Il repository è pubblico: niente email, chiavi, impronte o dati personali nei file committati (usare `docs-privati/`).
 - Prima di ogni commit o push mostra a Dan cosa cambia e aspetta il suo ok; messaggi di commit brevi, in italiano.
