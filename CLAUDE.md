@@ -6,6 +6,7 @@ e impacchettata come app Android (WebView con Capacitor) per Google Play, pacche
 
 ## File
 - `index.html`: tutta l'app (HTML + CSS + JS, nessuna libreria). Testi dell'interfaccia nell'oggetto `T` (it/en), 84 sfide in `RAW.it` / `RAW.en`, stato salvato in localStorage (chiave `sfida-del-giorno-v1`), `var VERSION = '…'`.
+- Promemoria giornaliero (dalla 1.3.0): notifiche locali con il plugin `@capacitor/local-notifications` (lo installa il workflow); in `index.html` sezione «promemoria», impostazioni in localStorage `sfida-notif`; sul sito il riquadro resta nascosto. Icona piccola `ic_stat_sfida` generata dal workflow.
 - `sw.js`: service worker (rete prima, poi cache); il nome della cache contiene la versione.
 - `manifest.json`, `icon-192.png`, `icon-512.png`, `privacy.html`, `.nojekyll`; `.well-known/assetlinks.json` qui è solo una copia (quello valido è alla radice del dominio, repository `dan39734.github.io`).
 - `.github/workflows/android.yml`: costruisce con GitHub Actions l'AAB firmato per Play e un APK di debug (avvio manuale).

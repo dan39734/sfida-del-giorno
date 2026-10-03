@@ -10,11 +10,11 @@ on:
       version_name:
         description: "Versione mostrata agli utenti (es. 1.1.1)"
         required: true
-        default: "1.1.1"
+        default: "1.3.0"
       version_code:
         description: "Numero di build: intero, sempre più alto dell'ultimo caricato su Play"
         required: true
-        default: "2"
+        default: "4"
 
 jobs:
   build:
@@ -67,7 +67,7 @@ jobs:
         run: |
           set -e
           npm init -y > /dev/null
-          npm install @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8
+          npm install @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/local-notifications@8
           rm -rf www && mkdir www
           cp index.html manifest.json privacy.html icon-192.png icon-512.png www/
           cat > capacitor.config.json <<'EOF'
@@ -115,7 +115,13 @@ jobs:
             sz=$(identify -format '%wx%h' "$f"); w=${sz%x*}; h=${sz#*x}; m=$(( w < h ? w : h )); ic=$((m / 5))
             convert -size "$sz" xc:'#F2F0F9' \( icon-512.png -resize ${ic}x${ic} \) -gravity center -composite "$f"
           done
-          ls "$RES/mipmap-xxxhdpi"
+          # icona piccola delle notifiche (promemoria): solo la spunta bianca su trasparente, 24 dp
+          for d in mdpi:24 hdpi:36 xhdpi:48 xxhdpi:72 xxxhdpi:96; do
+            dpi=${d%%:*}; px=${d##*:}
+            mkdir -p "$RES/drawable-$dpi"
+            convert "$RUNNER_TEMP/check.png" -trim +repage -resize $((px * 20 / 24))x$((px * 20 / 24)) -gravity center -background none -extent ${px}x${px} "$RES/drawable-$dpi/ic_stat_sfida.png"
+          done
+          ls "$RES/mipmap-xxxhdpi" "$RES/drawable-xxxhdpi"
 
       - name: Compila (AAB per Play + APK di prova)
         run: |
@@ -124,6 +130,8 @@ jobs:
           chmod +x gradlew
           ./gradlew bundleRelease assembleDebug --no-daemon --stacktrace
           ls -la app/build/outputs/bundle/release/ app/build/outputs/apk/debug/
+          echo "--- Permessi nel pacchetto (attesi: INTERNET, POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED, WAKE_LOCK) ---"
+          find app/build/intermediates -path '*release*' -name AndroidManifest.xml | head -1 | xargs grep -o 'android.permission[.A-Z_]*' | sort -u
 
       - name: Firma l'AAB con la chiave di upload
         env:

@@ -112,6 +112,21 @@
   }
   @keyframes thump{0%{transform:scale(1)} 45%{transform:scale(.985)} 100%{transform:scale(1)}}
 
+  /* ---- promemoria / daily reminder (solo nell'app) ---- */
+  .remind{display:flex; flex-direction:column; gap:10px; background:var(--surface); border:1px solid var(--line); border-radius:16px; padding:12px 14px; margin-top:-12px}
+  .remind[hidden]{display:none}
+  .remind-row{display:flex; align-items:center; justify-content:space-between; gap:12px; cursor:pointer; font-weight:600; font-size:15px; min-height:32px}
+  .remind-l{display:inline-flex; align-items:center; gap:8px}
+  .remind-l svg{width:18px; height:18px; color:var(--accent); flex:none}
+  .switch{appearance:none; -webkit-appearance:none; width:46px; height:28px; border-radius:999px; background:var(--line); position:relative; cursor:pointer; flex:none; margin:0; transition:background .15s}
+  .switch::after{content:""; position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 1px 3px rgba(0,0,0,.25); transition:transform .15s}
+  .switch:checked{background:var(--accent)}
+  .switch:checked::after{transform:translateX(18px)}
+  .switch:focus-visible{outline:3px solid var(--focus); outline-offset:2px}
+  .remind-time{display:flex; align-items:center; justify-content:space-between; gap:12px; font-size:14px; color:var(--muted)}
+  .remind-time[hidden]{display:none}
+  .remind-time input{font:inherit; font-weight:600; color:var(--ink); background:var(--ground); border:1px solid var(--line); border-radius:10px; padding:6px 10px; min-height:40px}
+
   /* ---- stats strip ---- */
   .stats{display:grid; grid-template-columns:repeat(3,1fr); padding:2px 0}
   .stat{display:flex; flex-direction:column; align-items:center; gap:2px; padding:4px 6px}
@@ -217,6 +232,17 @@
     </div>
   </article>
 
+  <div class="remind" id="remind" hidden>
+    <label class="remind-row" for="remindOn">
+      <span class="remind-l"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a6 6 0 0 0-6 6v3.6L4.3 16h15.4L18 12.6V9a6 6 0 0 0-6-6zm-2 15a2 2 0 0 0 4 0z" fill="currentColor"/></svg><span id="remindLabel">Remind me every day</span></span>
+      <input type="checkbox" class="switch" id="remindOn" role="switch">
+    </label>
+    <div class="remind-time" id="remindTimeRow" hidden>
+      <label for="remindTime" id="remindAt">At</label>
+      <input type="time" id="remindTime" value="09:00">
+    </div>
+  </div>
+
   <div class="stats" id="stats" aria-label="Your numbers">
     <div class="stat"><span class="v" id="vStreak"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c.6 4.2 5.2 6 5.2 11a5.2 5.2 0 0 1-10.4 0c0-2.1.9-3.7 2.2-5 .1 2 .9 3.2 2.1 3.4C11.2 8.6 10.6 5.4 12 2z" fill="currentColor"/></svg><span>0</span></span><span class="l" id="lStreak">Streak</span></div>
     <div class="stat"><span class="v" id="vBest">0</span><span class="l" id="lBest">Best</span></div>
@@ -269,7 +295,7 @@
 <script>
 (function(){
   'use strict';
-  var VERSION = '1.2.0';
+  var VERSION = '1.3.0';
 
   // ---------- lingua / language ----------
   // Italiano se il telefono è in italiano, inglese per tutti gli altri; il pulsante in fondo permette di cambiare.
@@ -310,7 +336,10 @@
       shareDone1: 'Sfida del giorno: «', shareDone2: '» — fatta! Serie: ', day1: ' giorno.', dayN: ' giorni.',
       shareTodo1: 'La mia sfida di oggi: «', shareTodo2: '». Ci provi anche tu?',
       copied: 'Testo copiato: incollalo dove vuoi', copyFail: 'Non riesco a copiare su questo dispositivo', noShare: 'Condivisione non disponibile qui',
-      installed: 'App installata'
+      installed: 'App installata',
+      remind: 'Ricordamelo ogni giorno', remindAt: 'Alle ore', nTitle: 'Sfida del giorno', nBody: 'Sfida di oggi: ',
+      remindSet: 'Promemoria attivo: ogni giorno alle ', remindOff: 'Promemoria spento',
+      remindDenied: 'Notifiche bloccate: attivale nelle impostazioni del telefono'
     },
     en: {
       title: 'Sfida · Today’s challenge',
@@ -335,7 +364,10 @@
       shareDone1: 'Today’s Sfida: “', shareDone2: '” — done! Streak: ', day1: ' day.', dayN: ' days.',
       shareTodo1: 'My challenge today: “', shareTodo2: '”. Care to try it too?',
       copied: 'Copied: paste it wherever you like', copyFail: 'Can’t copy on this device', noShare: 'Sharing isn’t available here',
-      installed: 'App installed'
+      installed: 'App installed',
+      remind: 'Remind me every day', remindAt: 'At', nTitle: 'Today’s Sfida', nBody: 'Today’s challenge: ',
+      remindSet: 'Reminder on: every day at ', remindOff: 'Reminder off',
+      remindDenied: 'Notifications are blocked: turn them on in your phone settings'
     }
   };
   function t(k) { return T[LANG][k]; }
@@ -623,6 +655,7 @@
     gridTitle: $('gridTitle'), grid: $('grid'), gridRange: $('gridRange'),
     btnSwap: $('btnSwap'), btnShare: $('btnShare'), swapHint: $('swapHint'), fbText: $('fbText'), rateText: $('rateText'), btnInstall: $('btnInstall'),
     histTitle: $('histTitle'), hist: $('hist'), histEmpty: $('histEmpty'), histCount: $('histCount'),
+    remind: $('remind'), remindLabel: $('remindLabel'), remindOn: $('remindOn'), remindTimeRow: $('remindTimeRow'), remindAt: $('remindAt'), remindTime: $('remindTime'),
     howText: $('howText'), installText: $('installText'), versionText: $('versionText'), btnLang: $('btnLang'), toast: $('toast')
   };
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
@@ -656,6 +689,8 @@
     el.versionText.textContent = t('version') + VERSION;
     el.btnLang.textContent = t('langBtn');
     el.btnLang.setAttribute('aria-label', t('langAria'));
+    el.remindLabel.textContent = t('remind');
+    el.remindAt.textContent = t('remindAt');
   }
 
   function render(just) {
@@ -718,19 +753,77 @@
     el.histCount.textContent = total > 0 ? (total === 1 ? t('stamp1') : total + t('stampN')) : '';
   }
 
+  // ---------- promemoria / daily reminder ----------
+  // Solo nell'app Android (Capacitor + plugin LocalNotifications); sul sito il riquadro resta nascosto.
+  // Si programmano i prossimi 28 giorni, uno per uno, con il testo della sfida di quel giorno;
+  // il giorno già timbrato non suona. Si riprogramma a ogni apertura e dopo Fatto / Annulla / Cambia / lingua.
+  var LN = (function () {
+    try {
+      var C = window.Capacitor;
+      if (!C || !C.isNativePlatform || !C.isNativePlatform()) return null;
+      if (C.Plugins && C.Plugins.LocalNotifications) return C.Plugins.LocalNotifications;
+      return C.registerPlugin ? C.registerPlugin('LocalNotifications') : null;
+    } catch (e) { return null; }
+  })();
+  var NKEY = 'sfida-notif', NDAYS = 28, NID = 1001;
+  var NS = { on: false, t: '09:00' };
+  function loadN() { try { var o = JSON.parse(localStorage.getItem(NKEY) || 'null'); if (o) NS = { on: !!o.on, t: /^\d\d:\d\d$/.test(o.t) ? o.t : '09:00' }; } catch (e) {} }
+  function saveN() { try { localStorage.setItem(NKEY, JSON.stringify(NS)); } catch (e) {} }
+  function renderRemind() {
+    el.remind.hidden = !LN;
+    el.remindOn.checked = NS.on;
+    el.remindTimeRow.hidden = !NS.on;
+    el.remindTime.value = NS.t;
+  }
+  function doResched() {
+    return LN.getPending().then(function (r) {
+      var ids = ((r && r.notifications) || []).map(function (n) { return { id: n.id }; });
+      return ids.length ? LN.cancel({ notifications: ids }) : null;
+    }).catch(function () {}).then(function () {
+      if (!NS.on) return null;
+      var p = NS.t.split(':'), now = new Date(), list = [];
+      for (var o = 0; o < NDAYS; o++) {
+        var d = addDays(now, o); d.setHours(+p[0], +p[1], 0, 0);
+        if (d <= now || S.done[key(d)]) continue;
+        list.push({ id: NID + o, title: t('nTitle'), body: t('nBody') + chText(currentFor(d)),
+          schedule: { at: d, allowWhileIdle: true }, smallIcon: 'ic_stat_sfida', iconColor: '#F0482B' });
+      }
+      return list.length ? LN.schedule({ notifications: list }) : null;
+    }).catch(function () {});
+  }
+  var nChain = Promise.resolve();
+  function reschedule() { if (!LN) return nChain; nChain = nChain.then(doResched, doResched); return nChain; }
+  function askPermission() {
+    return LN.checkPermissions().then(function (p) { return p && p.display === 'granted' ? p : LN.requestPermissions(); })
+      .then(function (p) { return !!(p && p.display === 'granted'); }, function () { return false; });
+  }
+  if (LN) {
+    el.remindOn.addEventListener('change', function () {
+      if (!el.remindOn.checked) { NS.on = false; saveN(); renderRemind(); reschedule(); toast(t('remindOff')); return; }
+      askPermission().then(function (ok) {
+        NS.on = ok; saveN(); renderRemind(); reschedule();
+        toast(ok ? t('remindSet') + NS.t : t('remindDenied'));
+      });
+    });
+    el.remindTime.addEventListener('change', function () {
+      if (!/^\d\d:\d\d$/.test(el.remindTime.value)) { el.remindTime.value = NS.t; return; }
+      NS.t = el.remindTime.value; saveN(); reschedule(); toast(t('remindSet') + NS.t);
+    });
+  }
+
   // ---------- azioni / actions ----------
   el.btnDone.addEventListener('click', function () {
     var today = new Date(), k = key(today), ch = currentFor(today);
     S.done[k] = { id: ch.id, ts: Date.now() }; save();
     if (navigator.vibrate) { try { navigator.vibrate([18, 40, 28]); } catch (e) {} }
-    render(true);
+    render(true); reschedule();
   });
   el.btnUndo.addEventListener('click', function () {
-    var k = key(new Date()); delete S.done[k]; save(); render(false);
+    var k = key(new Date()); delete S.done[k]; save(); render(false); reschedule();
   });
   el.btnSwap.addEventListener('click', function () {
     var k = key(new Date()); if (S.done[k] || S.swapped[k]) return;
-    S.swapped[k] = true; save(); render(false);
+    S.swapped[k] = true; save(); render(false); reschedule();
   });
   el.btnShare.addEventListener('click', function () {
     var today = new Date(), ch = currentFor(today), done = !!S.done[key(today)], st = streak();
@@ -748,12 +841,16 @@
   el.btnLang.addEventListener('click', function () {
     LANG = LANG === 'it' ? 'en' : 'it';
     try { localStorage.setItem(LANG_KEY, LANG); } catch (e) {}
-    applyLang(); render(false);
+    applyLang(); render(false); reschedule();
   });
 
   // cambio giorno mentre la pagina resta aperta / day change while the page stays open
   setInterval(function () { if (key(new Date()) !== shownKey) render(false); }, 30000);
-  document.addEventListener('visibilitychange', function () { if (!document.hidden && key(new Date()) !== shownKey) render(false); });
+  document.addEventListener('visibilitychange', function () {
+    if (document.hidden) return;
+    if (key(new Date()) !== shownKey) render(false);
+    reschedule();
+  });
 
   // ---------- installazione (Android/Chrome) / install prompt ----------
   var deferredPrompt = null;
@@ -770,8 +867,16 @@
   window.addEventListener('appinstalled', function () { el.btnInstall.hidden = true; toast(t('installed')); });
 
   load();
+  loadN();
   applyLang();
   render(false);
+  renderRemind();
+  if (LN && NS.on) {
+    LN.checkPermissions().then(function (p) {
+      if (!p || p.display !== 'granted') { NS.on = false; saveN(); renderRemind(); }
+      reschedule();
+    }, function () { reschedule(); });
+  }
 
   // ---------- funziona anche offline / works offline ----------
   if ('serviceWorker' in navigator) {
