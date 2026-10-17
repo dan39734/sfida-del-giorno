@@ -1,0 +1,10 @@
+{
+  "_commento": "Esiti attesi per l'APK con difetti noti (job «Prova di controllo»): salvataggio disattivato e SCHEDULE_EXACT_ALARM lasciato nel manifest. ok = ✅, ko = ❌. Le prove non elencate non contano.",
+  "L'app si apre senza crash": "ok",
+  "Compare la sfida del giorno": "ok",
+  "Si può completare (Fatto)": "ko",
+  "Il progresso resta dopo chiusura e riapertura": "ko",
+  "Nel pacchetto NON c'è SCHEDULE_EXACT_ALARM": "ko",
+  "Il promemoria si attiva e chiede il permesso notifiche": "ok",
+  "La notifica viene programmata": "ok"
+}

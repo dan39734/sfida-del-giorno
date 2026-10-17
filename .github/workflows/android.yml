@@ -186,3 +186,158 @@ jobs:
         with:
           name: sfida-apk-debug
           path: out/*-debug.apk
+
+  # Prove automatiche: installa l'APK di debug appena costruito su un emulatore Android e lo mette alla prova
+  # con prove/prove.mjs. Il rapporto ✅/❌/⚠️ compare nel riepilogo dell'esecuzione (scheda Summary).
+  prove:
+    name: Prove su emulatore
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v4
+
+      - name: Scarica l'APK di debug costruito dal job «build»
+        uses: actions/download-artifact@v4
+        with:
+          name: sfida-apk-debug
+          path: apk
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Abilita KVM (accelerazione per l'emulatore)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Avvia l'emulatore ed esegui le prove
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb wait-for-device
+            adb shell settings put global window_animation_scale 0
+            APK=$(ls apk/*-debug.apk | head -1)
+            echo "APK: $APK"
+            node prove/prove.mjs "$APK"
+
+      - name: Log dell'emulatore e rapporto (anche in caso di fallimento)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: prove-log
+          path: |
+            prove/logcat.txt
+            prove/rapporto.json
+          if-no-files-found: ignore
+
+  # Prova di controllo: compila un APK di debug con due difetti noti (il salvataggio non scrive nulla e
+  # SCHEDULE_EXACT_ALARM resta nel manifest) e lo passa alle stesse prove. Il job è verde solo se le prove
+  # bocciano l'APK esattamente dove dice prove/atteso-difettoso.json: così sappiamo che le prove funzionano.
+  # Gira in parallelo a «build», non usa la chiave di firma e non produce nulla da pubblicare.
+  controllo:
+    name: Prova di controllo (APK difettoso)
+    runs-on: ubuntu-latest
+    timeout-minutes: 50
+    steps:
+      - name: Scarica il repository
+        uses: actions/checkout@v4
+
+      - name: Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Prepara il progetto Capacitor con i difetti
+        run: |
+          set -e
+          npm init -y > /dev/null
+          npm install @capacitor/core@8 @capacitor/cli@8 @capacitor/android@8 @capacitor/local-notifications@^8.3.0
+          rm -rf www && mkdir www
+          cp index.html manifest.json privacy.html icon-192.png icon-512.png www/
+          # Difetto 1: la funzione save() non scrive più in localStorage (il progresso si perde alla chiusura)
+          ORIG="function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) {} }"
+          grep -qF "$ORIG" www/index.html || { echo "::error::Non trovo la funzione save() da rompere: aggiornare il job «controllo»"; exit 1; }
+          sed -i "s|$ORIG|function save() { /* DIFETTO VOLUTO: non salva */ }|" www/index.html
+          grep -n 'DIFETTO VOLUTO' www/index.html
+          cat > capacitor.config.json <<'EOF'
+          {
+            "appId": "io.github.dan39734.sfidadelgiorno",
+            "appName": "Sfida (controllo)",
+            "webDir": "www",
+            "backgroundColor": "#F2F0F9"
+          }
+          EOF
+          npx cap add android
+          npx cap sync android
+          # Difetto 2: NON si toglie SCHEDULE_EXACT_ALARM (il passo che lo rimuove qui manca apposta:
+          # il permesso arriva dal manifest del plugin delle notifiche e resta nel pacchetto)
+          # icona piccola delle notifiche: basta una copia dell'icona, qui non conta l'aspetto
+          mkdir -p android/app/src/main/res/drawable && cp icon-192.png android/app/src/main/res/drawable/ic_stat_sfida.png
+          G=android/app/build.gradle
+          sed -i -E 's/versionName[ =]+"[^"]*"/versionName = "controllo"/' "$G"
+          sed -i -E 's/(compileSdkVersion[ =]+)[0-9]+/\136/; s/(targetSdkVersion[ =]+)[0-9]+/\136/' android/variables.gradle
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses > /dev/null 2>&1 || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platforms;android-36" > /dev/null 2>&1 || true
+
+      - name: Compila l'APK difettoso
+        run: |
+          set -e
+          cd android && chmod +x gradlew && ./gradlew assembleDebug --no-daemon
+          cd .. && mkdir -p apk && cp android/app/build/outputs/apk/debug/app-debug.apk apk/sfida-difettoso-debug.apk
+          MM=$(find android/app/build/intermediates -path '*debug*' -name AndroidManifest.xml | head -1)
+          echo "Permessi nel pacchetto difettoso (deve esserci SCHEDULE_EXACT_ALARM):"
+          tr '\n' ' ' < "$MM" | grep -o '<uses-permission[^>]*>' | sed -E 's/.*android:name="([^"]*)".*/\1/' | sort -u
+          tr '\n' ' ' < "$MM" | grep -q 'SCHEDULE_EXACT_ALARM' || { echo "::error::L'APK difettoso non contiene SCHEDULE_EXACT_ALARM: il difetto non c'è, la prova di controllo non ha senso"; exit 1; }
+
+      - name: Abilita KVM (accelerazione per l'emulatore)
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+
+      - name: Avvia l'emulatore ed esegui le prove sull'APK difettoso
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          arch: x86_64
+          target: google_apis
+          profile: pixel_5
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          script: |
+            adb wait-for-device
+            adb shell settings put global window_animation_scale 0
+            node prove/prove.mjs apk/sfida-difettoso-debug.apk --atteso prove/atteso-difettoso.json
+
+      - name: Log dell'emulatore e rapporto (anche in caso di fallimento)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: controllo-log
+          path: |
+            prove/logcat.txt
+            prove/rapporto.json
+          if-no-files-found: ignore
