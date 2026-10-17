@@ -210,10 +210,11 @@ async function tutte() {
     assert(pend && pend.length, 'il plugin non ha notifiche in sospeso');
     const ids = pend.map((n) => n.id);
     assert(ids.every((id) => id >= 1001 && id < 1001 + 28), 'id inattesi: ' + ids.slice(0, 5).join(','));
-    const prima = pend.map((n) => n.schedule && n.schedule.at).filter(Boolean).sort()[0];
+    const date = pend.map((n) => new Date(n.schedule && n.schedule.at)).filter((d) => !isNaN(d)).sort((a, b) => a - b);
+    const prima = date.length ? date[0].toISOString().slice(0, 16).replace('T', ' ') + ' UTC' : '';
     const alarm = adbShell('dumpsys alarm');
     assert(alarm.includes(PKG), 'nessuna sveglia di Sfida in dumpsys alarm');
-    return pend.length + ' notifiche in sospeso' + (prima ? ', la prima il ' + String(prima).slice(0, 16) : '');
+    return pend.length + ' notifiche in sospeso' + (prima ? ', la prima il ' + prima : '');
   });
 
   await prova('Non si apre la schermata «Sveglie e promemoria»', async () => {
