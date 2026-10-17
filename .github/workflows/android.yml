@@ -233,9 +233,8 @@ jobs:
           script: |
             adb wait-for-device
             adb shell settings put global window_animation_scale 0
-            APK=$(ls apk/*-debug.apk | head -1)
-            echo "APK: $APK"
-            node prove/prove.mjs "$APK"
+            # ogni riga qui è un comando a sé: niente variabili condivise tra righe
+            node prove/prove.mjs "$(ls apk/*-debug.apk | head -1)"
 
       - name: Log dell'emulatore e rapporto (anche in caso di fallimento)
         if: always()
